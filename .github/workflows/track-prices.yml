@@ -1,0 +1,69 @@
+name: Track prices
+
+# Three fixed slots (UTC). How many of them actually do work is set in
+# config/products.yaml (settings.runs_per_day: 1, 2 or 3, or per product).
+# 1/day -> first slot, 2/day -> first + last, 3/day -> all three.
+# Slots that have nothing due finish in a few seconds.
+# You can change the times here; the code reads them from this file.
+on:
+  schedule:
+    - cron: "41 5 * * *"    # 06:41 Dutch time in winter, 07:41 in summer
+    - cron: "41 13 * * *"
+    - cron: "41 21 * * *"
+  workflow_dispatch:         # "Run workflow" button: checks every product right away
+
+permissions:
+  contents: write            # to commit data/prices.csv
+
+concurrency:
+  group: price-tracker
+  cancel-in-progress: false
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SCHEDULE: ${{ github.event.schedule }}
+      PROXY_URL: ${{ secrets.PROXY_URL }}
+      STORAGE_BACKENDS: ${{ vars.STORAGE_BACKENDS || 'csv' }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Plan this run
+        id: plan
+        run: python -m tracker.main plan
+
+      - name: Install headless browser
+        if: steps.plan.outputs.should_run == 'true' && steps.plan.outputs.needs_browser == 'true'
+        run: |
+          pip install -r requirements-browser.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Check prices
+        if: steps.plan.outputs.should_run == 'true'
+        run: python -m tracker.main run
+
+      - name: Commit CSV
+        if: always() && steps.plan.outputs.should_run == 'true' && contains(env.STORAGE_BACKENDS, 'csv')
+        run: |
+          git config user.name "price-tracker-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "no data changes"
+            exit 0
+          fi
+          git commit -m "prices: $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git pull --rebase --autostash
+          git push

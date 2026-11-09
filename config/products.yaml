@@ -1,0 +1,40 @@
+# ------------------------------------------------------------------
+# Global settings
+# ------------------------------------------------------------------
+settings:
+  runs_per_day: 1          # 1, 2 or 3 (the workflow has 3 slots, see .github/workflows/track-prices.yml)
+  proxy_mode: auto         # auto = direct first, proxy only if blocked | always | never
+  render_fallback: true    # use a headless browser if nothing else finds the price
+  default_currency: EUR    # used when the site does not say it
+  delay_seconds: [2, 5]    # random pause between products
+  timeout_seconds: 30
+
+# ------------------------------------------------------------------
+# Products
+#
+# Required:  id (stable, never change it: the history is keyed on it), url
+# Optional:  name, enabled (true/false), currency,
+#            selector     CSS selector for the price, if the automatic methods fail
+#            platform     shopify | woocommerce | squarespace (skips detection)
+#            proxy_mode   overrides the global setting for this product
+#            render       false = never open a browser for this product
+#            runs_per_day overrides the global setting for this product
+# ------------------------------------------------------------------
+products:
+  - id: example-shopify
+    name: Example Shopify product
+    url: https://example-store.myshopify.com/products/example-product
+    enabled: false
+
+  - id: example-woocommerce
+    name: Example WooCommerce product
+    url: https://example.com/product/example-product/
+    enabled: false
+
+  - id: example-with-selector
+    name: Example with a custom selector
+    url: https://example.com/some/product/page
+    selector: ".product-price .current"
+    currency: EUR
+    runs_per_day: 3
+    enabled: false

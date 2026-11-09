@@ -21,16 +21,25 @@ settings:
 #            runs_per_day overrides the global setting for this product
 # ------------------------------------------------------------------
 products:
-  - id: example-shopify
-    name: Example Shopify product
-    url: https://example-store.myshopify.com/products/example-product
-    enabled: false
+  # ---- demo products, replace them with your own ----
+  - id: demo-allbirds-tree-runner
+    name: Allbirds Men's Tree Runner (Shopify)
+    url: https://www.allbirds.com/products/mens-tree-runners
+    currency: USD
 
-  - id: example-woocommerce
-    name: Example WooCommerce product
-    url: https://example.com/product/example-product/
-    enabled: false
+  - id: demo-tundraglobe-coffee
+    name: Tundra Globe coffee beans (Shopify)
+    url: https://www.tundraglobe.com/products/premium-whole-coffee-beans-dark-roast
 
+  - id: demo-coolblue-airfryer
+    name: Philips Airfryer XXL NA342/00 (Coolblue)
+    url: https://www.coolblue.nl/en/product/954609/philips-airfryer-xxl-3000-series-na342-00.html
+
+  - id: demo-woolworths-coffee
+    name: WCafe Italian Blend 1kg (Woolworths ZA)
+    url: https://www.woolworths.co.za/prod/Food/Promotions/MyDifference-Favourites/WCafe-Italian-Blend-Coffee-Beans-1-kg/_/A-6009189862465
+
+  # ---- examples of the optional fields ----
   - id: example-with-selector
     name: Example with a custom selector
     url: https://example.com/some/product/page

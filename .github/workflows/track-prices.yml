@@ -11,6 +11,9 @@ on:
     - cron: "41 13 * * *"
     - cron: "41 21 * * *"
   workflow_dispatch:         # "Run workflow" button: checks every product right away
+  push:                      # editing the product list checks every product right away
+    branches: [main]
+    paths: ["config/products.yaml"]
 
 permissions:
   contents: write            # to commit data/prices.csv

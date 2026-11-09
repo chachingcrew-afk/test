@@ -100,7 +100,8 @@ def check_product(product: dict, fetcher: Fetcher, renderer: BrowserRenderer | N
         currency = result.currency or product.get("currency") or settings.get("default_currency")
         return PriceRecord(**base, status="ok", price=result.price.quantize(type(result.price)("0.01")),
                            currency=currency, in_stock=result.in_stock, method=result.method)
-    return PriceRecord(**base, status="blocked" if ctx.blocked else "failed",
+    status = "not_found" if ctx.not_found else "blocked" if ctx.blocked else "failed"
+    return PriceRecord(**base, status=status,
                        error=" | ".join(ctx.attempts)[:2000])
 
 

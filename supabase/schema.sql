@@ -7,7 +7,7 @@ create table if not exists public.price_checks (
     product_id    text        not null,
     product_name  text,
     url           text        not null,
-    status        text        not null check (status in ('ok', 'failed', 'blocked')),
+    status        text        not null check (status in ('ok', 'failed', 'blocked', 'not_found')),
     price         numeric(12, 2),
     currency      char(3),
     in_stock      boolean,

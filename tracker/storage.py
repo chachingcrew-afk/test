@@ -23,7 +23,7 @@ class PriceRecord:
     product_id: str
     product_name: str
     url: str
-    status: str                # ok | failed | blocked
+    status: str                # ok | failed | blocked | not_found
     price: Decimal | None = None
     currency: str | None = None
     in_stock: bool | None = None

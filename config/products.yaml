@@ -27,10 +27,6 @@ products:
     url: https://www.allbirds.com/products/mens-tree-runners
     currency: USD
 
-  - id: demo-tundraglobe-coffee
-    name: Tundra Globe coffee beans (Shopify)
-    url: https://www.tundraglobe.com/products/premium-whole-coffee-beans-dark-roast
-
   - id: demo-coolblue-airfryer
     name: Philips Airfryer XXL NA342/00 (Coolblue)
     url: https://www.coolblue.nl/en/product/954609/philips-airfryer-xxl-3000-series-na342-00.html

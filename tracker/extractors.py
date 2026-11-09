@@ -36,6 +36,7 @@ class Context:
     used_proxy: bool = False
     rendered: bool = False
     blocked: bool = False
+    not_found: bool = False
     attempts: list[str] = field(default_factory=list)
 
     @property
@@ -383,6 +384,8 @@ def _run(ctx: Context, name: str, fn) -> PriceResult | None:
 
 def _run_html_strategies(ctx: Context) -> PriceResult | None:
     for name, fn in HTML_STRATEGIES:
+        if name == "css_selector" and not ctx.product.get("selector"):
+            continue
         result = _run(ctx, name, fn)
         if result:
             return result
@@ -409,6 +412,10 @@ def extract_price(ctx: Context, renderer: BrowserRenderer | None) -> PriceResult
     except FetchError as err:
         ctx.blocked = ctx.blocked or err.blocked
         ctx.attempts.append(f"html_fetch: {err}")
+        if err.status in (404, 410):
+            # the product page is gone: a browser will not bring it back
+            ctx.not_found = True
+            return None
 
     if ctx.html:
         platform = detect_platform(ctx.html)

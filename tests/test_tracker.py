@@ -175,6 +175,13 @@ def test_everything_fails_gives_none_with_log():
     assert result is None and any("jsonld" in a for a in ctx.attempts)
 
 
+def test_missing_product_stops_without_browser():
+    url = "https://x.example/products/gone"
+    renderer = FakeRenderer("<html></html>")
+    result, ctx = run(url, {}, renderer=renderer)
+    assert result is None and ctx.not_found and not renderer.used
+
+
 def test_block_detection():
     assert looks_blocked(403, "")
     assert looks_blocked(200, "<title>Just a moment...</title>")

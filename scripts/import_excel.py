@@ -23,7 +23,9 @@ OWN_SHEET = "100 kiválasztott termék"
 COMPETITOR_SHEET = "Versenytárstalálatok"
 
 # only used when the page itself does not state a currency
-TLD_CURRENCY = {"no": "NOK", "ch": "CHF", "se": "SEK", "dk": "DKK", "uk": "GBP", "pl": "PLN",
+EUROZONE_TLDS = {"nl", "be", "de", "fr", "at", "es", "it", "ie", "fi", "pt", "lu", "sk", "si", "ee", "lv", "lt",
+                 "gr", "cy", "mt", "hr"}
+TLD_CURRENCY = {**{tld: "EUR" for tld in EUROZONE_TLDS}, "no": "NOK", "ch": "CHF", "se": "SEK", "dk": "DKK", "uk": "GBP", "pl": "PLN",
                 "cz": "CZK", "hu": "HUF", "us": "USD", "au": "AUD", "ca": "CAD"}
 
 

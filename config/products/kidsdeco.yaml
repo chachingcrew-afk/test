@@ -715,6 +715,7 @@ products:
   role: competitor
   shop: beerenschaap.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-002-c02-stadtlandkind-ch
   name: Maileg Wiege My Light Rose
   url: https://www.stadtlandkind.ch/products/wiege-my-light-rose
@@ -730,6 +731,7 @@ products:
   role: competitor
   shop: leuk-erbijvanelles.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-002-c04-wijswest-nl
   name: Maileg Wiegje My Light Rose
   url: https://wijswest.nl/product/maileg-wiegje-my-light-rose/
@@ -737,6 +739,7 @@ products:
   role: competitor
   shop: wijswest.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-002-c05-bijbroerenzus-nl
   name: Maileg Cradle My - Light rose
   url: https://www.bijbroerenzus.nl/cradle-my-light-rose.html
@@ -744,6 +747,7 @@ products:
   role: competitor
   shop: bijbroerenzus.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-002-c06-kids-world-com
   name: Maileg Miniatuur Wieg - My - Licht roze
   url: https://www.kids-world.com/nl-nl/maileg-miniatuur-wieg-my-licht-roze-p-382691.html
@@ -758,6 +762,7 @@ products:
   role: competitor
   shop: sorihome.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-002-c08-maileg-com
   name: Cradle, My - Light rose
   url: https://maileg.com/products/cradle-my-light-rose-1
@@ -793,6 +798,7 @@ products:
   role: competitor
   shop: lobbesspeelgoed.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-003-c03-speelgoedwinkel-nl
   name: Little Dutch Muziek TV - Safari - Groen
   url: https://www.speelgoedwinkel.nl/product/little-dutch-muziek-tv-safari-groen-384175.html
@@ -800,6 +806,7 @@ products:
   role: competitor
   shop: speelgoedwinkel.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-003-c04-little-dutch-com
   name: Muziek TV - Groen
   url: https://little-dutch.com/nl-nl/products/muziek-tv-groen
@@ -822,6 +829,7 @@ products:
   role: competitor
   shop: pikolin.si
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-004-c01-woewoe-nl
   name: Glo Pals Funfillers - Sprookjes | WoeWoe | Creatief, sensorisch en open einde speelgoed
   url: https://woewoe.nl/product/glo-pals-funfillers-sprookjes/
@@ -829,6 +837,7 @@ products:
   role: competitor
   shop: woewoe.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-004-c02-whybaby-pl
   name: Glo Pals FAIRY Fun Fillers Wkład figurki brokaty i barwniki do słoików zabaw sensorycznych
   url: https://whybaby.pl/glo-pals-fairy-fun-fillers-wklad-figurki-brokaty-i-barwniki-do-sloikow-zabaw-sensorycznych/
@@ -844,6 +853,7 @@ products:
   role: competitor
   shop: donsaapje.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-004-c04-glopals-com
   name: Fun Fillers
   url: https://glopals.com/collections/all-products/products/funfillers?variant=40710598131782
@@ -873,6 +883,7 @@ products:
   role: competitor
   shop: mooistekinderkamer.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-005-c02-camcamcopenhagen-com
   name: Mulltuch Decke - GOTS - Bows
   url: https://camcamcopenhagen.de/products/muslin-baby-blanket-gots-bows
@@ -880,6 +891,7 @@ products:
   role: competitor
   shop: camcamcopenhagen.com
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-005-c03-lebaby-nl
   name: Cam Cam Copenhagen Hydrofiele Doek - 70x70 - 2-pack - Amandel
   url: https://lebaby.nl/be-nl/producten/cam-cam-copenhagen-hydrofiele-doek-70x70-2-pack-amandel-sm8bekgkdt
@@ -887,6 +899,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-005-c04-kids-world-com
   name: Cam Cam Hydrofiele Doek - 70x70 - 2-pack - Amandel
   url: https://www.kids-world.com/nl-be/cam-cam-hydrofiele-doek-70x70-2pack-amandel-p-252341.html
@@ -908,6 +921,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-007-c01-volverwachting-nl
   name: Meyco Laken Plume - off white
   url: https://www.volverwachting.nl/product/meyco-laken-plume-off-white/
@@ -915,6 +929,7 @@ products:
   role: competitor
   shop: volverwachting.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-008-c01-kollekt-be
   name: 'Glo Pals: ''MINI Sensory play jar'' roze set met vormen'
   url: https://kollekt.be/winkel/kids/kids-spelen/kids-spelen-babyspeelgoed/glo-pals-mini-sensory-play-jar-roze-set-met-vormen/
@@ -922,6 +937,7 @@ products:
   role: competitor
   shop: kollekt.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-008-c02-glopals-com
   name: Mini Sensory Play Jar® Gift Set
   url: https://glopals.com/products/mini-sensory-play-jar-gift-set
@@ -1000,6 +1016,7 @@ products:
   role: competitor
   shop: hobby-koopjes.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-009-c03-zoubisoukids-nl
   name: Pixelhobby - Pixel set Eenhoorn
   url: https://zoubisoukids.nl/product/pixelhobby-pixel-set-eenhoorn/
@@ -1007,6 +1024,7 @@ products:
   role: competitor
   shop: zoubisoukids.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-009-c04-wonderzolder-nl
   name: Pixelhobby Sleutelhanger set - Sweet
   url: https://www.wonderzolder.nl/product/pixelhobby-sleutelhanger-set-sweet/
@@ -1014,6 +1032,7 @@ products:
   role: competitor
   shop: wonderzolder.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-009-c05-artenhobby-nl
   name: PixelHobby Pixel Set Vredesduif
   url: https://www.artenhobby.nl/pixel-set-vredesduif.html
@@ -1021,6 +1040,7 @@ products:
   role: competitor
   shop: artenhobby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-009-c06-craftfulthings-eu
   name: Pixelhobby - Pixel Classic - Vredesduif 44034
   url: https://www.craftfulthings.eu/products/pixelhobby-pixel-classic-vredesduif-44034
@@ -1043,6 +1063,7 @@ products:
   role: competitor
   shop: kleinekolibri.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-009-c09-imusic-com
   name: Pixel Medaillon Set Mädchen
   url: https://imusic.com/merchandise/8718468120131/p-2023-pixel-medaillon-set-madchen-toys
@@ -1064,6 +1085,7 @@ products:
   role: competitor
   shop: leuk-erbijvanelles.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-010-c02-kids-world-com
   name: Maileg Miniature Vintage Chair - Mouse - Off White
   url: https://www.kids-world.com/en-us/maileg-miniature-vintage-chair-mouse-off-white-p-414195.html
@@ -1107,6 +1129,7 @@ products:
   role: competitor
   shop: kinderwonderland.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-010-c08-knuffelsalacarte-nl
   name: Maileg stoel voor de muisjes / powder
   url: https://www.knuffelsalacarte.nl/nl/maileg-stoel-voor-de-muisjes-powder.html
@@ -1114,6 +1137,7 @@ products:
   role: competitor
   shop: knuffelsalacarte.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-010-c09-alsaba-de
   name: Maileg - Vintage Stuhl, Maus Miniatur - Creme
   url: https://alsaba.de/products/maileg-vintage-stuhl-maus-miniatur-creme
@@ -1121,6 +1145,7 @@ products:
   role: competitor
   shop: alsaba.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-011-c01-glopals-com
   name: Lumi Light-Up Cubes 4-Pack
   url: https://glopals.com/products/lumi-light-up-cubes
@@ -1149,6 +1174,7 @@ products:
   role: competitor
   shop: hippegifts.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-011-c05-babycare-nl
   name: Glo Pals Light-Up Cubes Lumi
   url: https://www.babycare.nl/en/glo-pals-light-up-cubes-lumi.html
@@ -1156,6 +1182,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-011-c06-andersspelen-be
   name: Glo Pals Light Cubes Lumi
   url: https://andersspelen.be/shop/glo-pals-light-cubes-lumi/
@@ -1163,6 +1190,7 @@ products:
   role: competitor
   shop: andersspelen.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-011-c07-staples-ca
   name: Glo Pals Light-Up Cubes - Lumi Character
   url: https://www.staples.ca/products/3137172-en-glo-pals-light-up-cubes-lumi-character
@@ -1193,6 +1221,7 @@ products:
   role: competitor
   shop: minifem.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-012-c01-brainbowtoys-de
   name: Maileg Ovalen Kaffeetisch „Nature“ für Mäuse
   url: https://brainbowtoys.de/shop/puppenhaus-zubehoer/maeuse-puppenhaus/maileg-miniatur-beistelltisch-maus/
@@ -1200,6 +1229,7 @@ products:
   role: competitor
   shop: brainbowtoys.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-012-c02-kids-world-com
   name: Maileg Miniatuur Ovaal Tafel - Mini - Naturel
   url: https://www.kids-world.com/nl-be/maileg-miniatuur-ovaal-tafel-mini-naturel-p-414757.html
@@ -1214,6 +1244,7 @@ products:
   role: competitor
   shop: kindercompagnie.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-012-c04-hethoutenpoppenhuis-nl
   name: Maileg Lange Eettafel Muis
   url: https://www.hethoutenpoppenhuis.nl/products/maileg-lange-eettafel-muis
@@ -1221,6 +1252,7 @@ products:
   role: competitor
   shop: hethoutenpoppenhuis.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-012-c05-maileg-com
   name: Oval table, Mini - Nature
   url: https://maileg.com/products/oval-table-mini-nature
@@ -1272,6 +1304,7 @@ products:
   role: competitor
   shop: tinydutch.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-013-c02-paradisio-online-be
   name: Rammelaar, Jollein Teddy Bear Biscuit | Teddy Bear biscuit
   url: https://www.paradisio-online.be/baby/rammelaar-jollein-teddy-bear-biscuit-teddy-bear-biscuit/p-1288950
@@ -1279,6 +1312,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-013-c03-wehkamp-nl
   name: Rammelaar Teddy Bear Biscuit
   url: https://www.wehkamp.nl/jollein-rammelaar-teddy-bear-biscuit-17026585/
@@ -1286,6 +1320,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-013-c04-kleertjes-com
   name: Rammelaar Teddy Bear Biscuit
   url: https://www.kleertjes.com/jollein-rammelaar-teddy-bear-biscuit-17026585/
@@ -1315,6 +1350,7 @@ products:
   role: competitor
   shop: partycolors.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-013-c08-despeelgoedwinkel-nl
   name: Djeco Djeco Rammelaar BabyMaraki
   url: https://www.despeelgoedwinkel.nl/djeco-babymaraki.html
@@ -1322,6 +1358,7 @@ products:
   role: competitor
   shop: despeelgoedwinkel.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-013-c09-wibra-nl
   name: Baby rammelaar
   url: https://www.wibra.nl/assortiment/rammelaar-2/
@@ -1329,6 +1366,7 @@ products:
   role: competitor
   shop: wibra.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-013-c10-zusjez-nl
   name: MAILEG | Rammelaar konijn set - powder
   url: https://www.zusjez.nl/a-117930356/maileg-sale-actie/maileg-rammelaar-konijn-set-powder/
@@ -1336,6 +1374,7 @@ products:
   role: competitor
   shop: zusjez.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-014-c01-internet-speelgoedwinkel-nl
   name: Little Dutch Wiebeldier Hert - Fairy Garden
   url: https://www.internet-speelgoedwinkel.nl/little-dutch-wiebeldier-hert-fairy-garden.html
@@ -1343,6 +1382,7 @@ products:
   role: competitor
   shop: internet-speelgoedwinkel.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-014-c02-babycare-nl
   name: Little Dutch Wiebeldier Hert  - Fairy Garden FSC
   url: https://www.babycare.nl/nl/little-dutch-wiebeldier-hert-fairy-garden-fsc.html
@@ -1350,6 +1390,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-014-c03-dinkeywinkey-nl
   name: Little Dutch - Hobbeldier - Hert - Fairy Garden - Dinkey Winkey
   url: https://dinkeywinkey.nl/little-dutch-hobbelhert-fairy-garden/
@@ -1357,6 +1398,7 @@ products:
   role: competitor
   shop: dinkeywinkey.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-014-c04-babystrefpunt-nl
   name: Little Dutch hobbeldier hert Fairy Garden
   url: https://www.babystrefpunt.nl/site/product/little-dutch-hobbeldier-hert-fairy-garden/
@@ -1364,6 +1406,7 @@ products:
   role: competitor
   shop: babystrefpunt.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-014-c05-minimani-fi
   name: LITTLE DUTCH FAIRY GARDEN KEINUKAURIS FSC
   url: https://www.minimani.fi/little-dutch-fairy-garden-keinukauris-fsc.html
@@ -1371,6 +1414,7 @@ products:
   role: competitor
   shop: minimani.fi
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-014-c06-smallkins-com
   name: Wobble Animal - Fairy Garden Deer
   url: https://smallkins.com/products/little-dutch-wobble-animal-fairy-garden-deer-ld7334?variant=47193277989110
@@ -1400,6 +1444,7 @@ products:
   role: competitor
   shop: babyoutlet.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-015-c02-vanastenbabysuperstore-nl
   name: Hoeslaken Meyco Wieg Jersey Wit 40x80/90
   url: https://www.vanastenbabysuperstore.nl/hoeslaken-meyco-wieg-jersey-wit
@@ -1407,6 +1452,7 @@ products:
   role: competitor
   shop: vanastenbabysuperstore.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-015-c03-wehkamp-nl
   name: jersey hoeslaken wieg 40x80/90 cm
   url: https://www.wehkamp.nl/meyco-jersey-hoeslaken-wieg-40x80-90-cm-16039771/
@@ -1414,6 +1460,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-015-c04-meycobaby-com
   name: Hoeslaken jersey - White
   url: https://www.meycobaby.com/products/hoeslaken-jersey-white
@@ -1428,6 +1475,7 @@ products:
   role: competitor
   shop: wieghuren.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-015-c06-lebaby-nl
   name: Meyco Uni hoeslaken wieg - 40x80/90cm
   url: https://lebaby.nl/be-nl/producten/meyco-uni-hoeslaken-wieg-40x80-90cm-khys10n7kn
@@ -1435,6 +1483,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-015-c07-meubelo-nl
   name: Meyco katoenen jersey hoeslaken voor wieg, forest green, 50x90 cm
   url: https://www.meubelo.nl/p/521da39b7c96822601ef61a1591ae04a
@@ -1442,6 +1491,7 @@ products:
   role: competitor
   shop: meubelo.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-015-c08-babypark-nl
   name: Little Dutch Safari Friends Wieg Hoeslaken - Safari Leo
   url: https://www.babypark.nl/little-dutch-wieg-hoeslaken-safari-leo.html
@@ -1449,6 +1499,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-015-c09-moebel-ladendirekt-de
   name: 'Meyco Baby Spannbettlaken Forest Green, Jersey, Gummizug: Rundum, (1 Stück), 40x80/90cm - 1-pack'
   url: https://moebel.ladendirekt.de/produkte/meyco-baby-spannbettlaken-forest-green-jersey-23d8db75
@@ -1456,6 +1507,7 @@ products:
   role: competitor
   shop: moebel.ladendirekt.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-016-c01-ilovespeelgoed-nl
   name: petit monkey drinkfles macaron popsicles - peony pink - 300 ml
   url: https://ilovespeelgoed.nl/products/petit-monkey-drinkfles-macaron-popsicles-peony-pink-300-ml
@@ -1463,6 +1515,7 @@ products:
   role: competitor
   shop: ilovespeelgoed.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-016-c02-petitmonkey-com
   name: Drinking bottle marcaron pops peony pink
   url: https://petitmonkey.com/products/drinking-bottle-marcaron-pops-peony-pink
@@ -1577,6 +1630,7 @@ products:
   role: competitor
   shop: littledepartmentstore.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-018-c03-omoda-nl
   name: KONGES SLOJD TUT KITTY SHOULDER BAG
   url: https://www.omoda.be/nl/meisjes/schoudertassen/witte-konges-slojd-schoudertas-tut-kitty-shoulder-bag-308248.html
@@ -1584,6 +1638,7 @@ products:
   role: competitor
   shop: omoda.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-018-c04-mabelandfox-com
   name: Konges Slojd – Tut Shoulder Bag - Kitty
   url: https://www.mabelandfox.com/collections/konges-slojd/products/konges-slojd-tut-shoulder-bag-kitty
@@ -1614,6 +1669,7 @@ products:
   role: competitor
   shop: letzshop.lu
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-019-c01-vierseizoenen-nl
   name: Alwero matras beschermer wieg 80x42cm Naturel
   url: https://vierseizoenen.nl/winkel/alwero-matras-beschermer-wieg-80x42cm-naturel/
@@ -1621,6 +1677,7 @@ products:
   role: competitor
   shop: vierseizoenen.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-019-c02-9up9down-nl
   name: Alwero Alwero wollen matras beschermer wieg 80x42 naturel
   url: https://www.9up9down.nl/alwero-wollen-matrasbeschermer-naturel-153424133.html
@@ -1628,6 +1685,7 @@ products:
   role: competitor
   shop: 9up9down.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-019-c03-charlys-nl
   name: Matras beschermer wieg naturel
   url: https://www.charlys.nl/products/matras-beschermer-wieg
@@ -1635,6 +1693,7 @@ products:
   role: competitor
   shop: charlys.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-019-c04-bol-com
   name: Alwero matras beschermer wieg 80x40cm
   url: https://www.bol.com/nl/nl/p/alwero-matras-beschermer-wieg-80x42cm-beige/9300000169161525/
@@ -1649,6 +1708,7 @@ products:
   role: competitor
   shop: alweroshop.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-019-c06-papallou-com
   name: Wool Mattress Protector
   url: https://papallou.com/products/wool-mattress-protector
@@ -1671,6 +1731,7 @@ products:
   role: competitor
   shop: sorihome.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-020-c03-ovellie-dk
   name: Maileg Sofa Beige - Mini
   url: https://ovellie.dk/products/maileg-sofa-beige-mini
@@ -1686,6 +1747,7 @@ products:
   role: competitor
   shop: leuk-erbijvanelles.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-020-c05-kinderfeestwinkel-nl
   name: maileg miniature couch
   url: https://www.kinderfeestwinkel.nl/maileg/maileg-huizen-meubels-en-huisraad/maileg-miniature-couch
@@ -1693,6 +1755,7 @@ products:
   role: competitor
   shop: kinderfeestwinkel.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-020-c06-maudekids-com
   name: Couch, Miniature by Maileg
   url: https://maudekids.com/products/couch-miniature-by-maileg
@@ -1721,6 +1784,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-021-c03-minikid-lt
   name: Moonie 2.0 Organic Humming Bear Cappuchino
   url: https://minikid.lt/baldai-ir-interjero-detales/projektori-naktslampinas/moonie-2-0-organic-humming-bear-cappuchino/150183/5/p
@@ -1728,6 +1792,7 @@ products:
   role: competitor
   shop: minikid.lt
   match: Azonos EAN
+  currency: EUR
 - id: kd-021-c04-kinderwonderland-nl
   name: Moonie - Slaapknuffel The Humming Bear - Cappuccino Natur White Noise 2.0
   url: https://kinderwonderland.nl/products/moonie-slaapknuffel-the-humming-bear-cappuccino-natur-white-noise-2-0
@@ -1735,6 +1800,7 @@ products:
   role: competitor
   shop: kinderwonderland.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-021-c05-babypark-nl
   name: Moonie The Humming Bear Slaapknuffel - Cappuccino
   url: https://www.babypark.nl/moonie-the-humming-bear-slaapknuffel.html
@@ -1742,6 +1808,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-021-c06-perfectoys-gr
   name: MOONIE 2.0 SLEEP AID ORGANIC HUMMING BEAR WITH A LAMP CAPPUCCINO (#M-MCA2)
   url: https://www.perfectoys.gr/en/2078
@@ -1749,6 +1816,7 @@ products:
   role: competitor
   shop: perfectoys.gr
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-021-c07-yaykids-ch
   name: Moonie teddy bear with light "The organic Humming Bear" Cappuccino 2.0
   url: https://www.yaykids.ch/en-eur/products/the-organic-humming-bear-with-lamp-cappuccino-2-0
@@ -1786,6 +1854,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-022-c02-kleertjes-com
   name: ledikantdeken (140x110 cm) - Roze - Blooming Safari
   url: https://www.kleertjes.com/little-dutch-ledikantdeken-140x110-cm-roze-blooming-safari-17585723/
@@ -1807,6 +1876,7 @@ products:
   role: competitor
   shop: yellowbello.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-022-c05-babypark-nl
   name: Meyco ledikantdeken Knit basic sand melange 2753020
   url: https://www.babypark.de/meyco-knit-basic-bettdecke-100-x-150-cm.html
@@ -1814,6 +1884,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-023-c01-lilleprinsen-no
   name: Konges Sløjd Tut Star Wallet - Gold
   url: https://www.lilleprinsen.no/produkt/konges-slojd-tut-star-wallet-gold/
@@ -1837,6 +1908,7 @@ products:
   role: competitor
   shop: deschattenvan.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-024-c02-paagman-nl
   name: Harry Potter knuffel - Dobby, 23 cm
   url: https://www.paagman.nl/harry-potter-knuffel-dobby-23-cm-5014475022189
@@ -1844,6 +1916,7 @@ products:
   role: competitor
   shop: paagman.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-024-c03-dehuiself-nl
   name: Harry Potter Knuffel Dobby zittend (25cm)
   url: https://dehuiself.nl/product/harry-potter-knuffel-dobby-zittend-25cm/
@@ -1851,6 +1924,7 @@ products:
   role: competitor
   shop: dehuiself.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-024-c04-shopforgeek-com
   name: HARRY POTTER - Dobby - Plush Toy 25cm
   url: https://www.shopforgeek.com/en/HARRY-POTTER-DOBBY-PLUSH-TOY-25CM-239912.html
@@ -1879,6 +1953,7 @@ products:
   role: competitor
   shop: mamaco.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-025-c02-hipster-baby-de
   name: Liewood Puppenbettwäsche Joan „Peach / Sea shell“
   url: https://www.hipster-baby.de/produkt/liewood-puppenbettwaesche-joan-peach-sea-shell/
@@ -1886,6 +1961,7 @@ products:
   role: competitor
   shop: hipster-baby.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-025-c03-takatomo-de
   name: LIEWOOD Joan PUPPEN BETTWÄSCHE SET Mini Me "Peach" Seashell (3 Jahre+)
   url: https://www.takatomo.de/de/liewood-joan-puppen-bettwaesche-set-mini-me-peach-seashell-3-jahre.html
@@ -1893,6 +1969,7 @@ products:
   role: competitor
   shop: takatomo.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-025-c04-kids-world-com
   name: Liewood Puppenbettwäsche - Joan - Peach/Sea Shell
   url: https://www.kids-world.com/de-de/liewood-puppenbettwaesche-joan-peach-sea-shell-p-457102.html
@@ -1981,6 +2058,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-027-c02-little-dutch-com
   name: Activiteitenknuffel Gans - Wit - Little Goose
   url: https://little-dutch.com/nl-nl/products/activiteitenknuffel-gans-wit-little-goose
@@ -1995,6 +2073,7 @@ products:
   role: competitor
   shop: lobbesspeelgoed.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-027-c04-hallmark-nl
   name: Little Dutch Activiteitenknuffel Little Goose
   url: https://www.hallmark.nl/cadeau/baby/little-dutch-activiteitenknuffel-little-goose--TOY000561.html
@@ -2002,6 +2081,7 @@ products:
   role: competitor
   shop: hallmark.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-027-c05-sylviasbeautiekie-nl
   name: Little Dutch Activiteitenknuffel Little Goose
   url: https://sylviasbeautiekie.nl/collectie/little-dutch-activiteitenknuffel-little-goose
@@ -2009,6 +2089,7 @@ products:
   role: competitor
   shop: sylviasbeautiekie.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-027-c06-babystrefpunt-nl
   name: Little Dutch activiteitenknuffel gans little goose
   url: https://www.babystrefpunt.nl/site/product/little-dutch-activiteitenknuffel-gans-little-goose/
@@ -2016,6 +2097,7 @@ products:
   role: competitor
   shop: babystrefpunt.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-027-c07-deboomhut-be
   name: Activiteitenknuffel Little Goose Little Dutch
   url: https://deboomhut.be/product/activiteitenknuffel-little-goose-little-dutch/
@@ -2023,6 +2105,7 @@ products:
   role: competitor
   shop: deboomhut.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-027-c08-figgli-com
   name: Little Dutch Safari Friends Activiteitenknuffel Leeuw
   url: https://figgli.com/nl-nl/producten/little-dutch-safari-friends-activiteitenknuffel-leeuw-acj5tz5mwg
@@ -2037,6 +2120,7 @@ products:
   role: competitor
   shop: wijswest.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-028-c02-mourits-dk
   name: Liewood Misa Ryo Plush Doll - Oat
   url: https://mourits.dk/produkt/liewood-misa-ryo-plush-doll-oat-2235149?v=2259085
@@ -2052,6 +2136,7 @@ products:
   role: competitor
   shop: hipster-baby.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-028-c04-petitstockholm-se
   name: Misa Ryo Plush Doll - Oat
   url: https://petitstockholm.se/collections/nyheter/products/misa-ryo-plush-doll-oat
@@ -2067,6 +2152,7 @@ products:
   role: competitor
   shop: lajoliecabane.fr
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-028-c06-kids-world-com
   name: Liewood Doll - Plys - Misa Ryo - 41 cm - Oat
   url: https://www.kids-world.com/en-us/liewood-doll-plys-misa-ryo-41-cm-oat-p-457076.html
@@ -2081,6 +2167,7 @@ products:
   role: competitor
   shop: vanastenbabysuperstore.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-029-c02-wehkamp-nl
   name: kindervloerkleed Paddenstoel
   url: https://www.wehkamp.nl/little-dutch-kindervloerkleed-paddenstoel-17598419/
@@ -2088,6 +2175,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-030-c01-zusjez-nl
   name: MAILEG | Rammelaar konijn set - powder
   url: https://www.zusjez.nl/a-117930356/maileg-sale-actie/maileg-rammelaar-konijn-set-powder/
@@ -2095,6 +2183,7 @@ products:
   role: competitor
   shop: zusjez.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-030-c02-maileg-com
   name: Rabbit rattle set - Mint
   url: https://maileg.com/products/rabbit-rattle-set-mint
@@ -2123,6 +2212,7 @@ products:
   role: competitor
   shop: jollein.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-030-c06-tinydutch-nl
   name: Jollein Rammelaar Teddy Bear - Biscuit
   url: https://www.tinydutch.nl/product/jollein-rammelaar-teddy-bear-biscuit
@@ -2130,6 +2220,7 @@ products:
   role: competitor
   shop: tinydutch.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-030-c07-wehkamp-nl
   name: Rammelaar Teddy Bear Biscuit
   url: https://www.wehkamp.nl/jollein-rammelaar-teddy-bear-biscuit-17026585/
@@ -2137,6 +2228,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-030-c08-babygarage-nl
   name: Petit Boum Rammelaar/Bijtring Wortel
   url: https://www.babygarage.nl/product/petit-boum-rammelaar-bijtring-wortel/
@@ -2144,6 +2236,7 @@ products:
   role: competitor
   shop: babygarage.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-030-c09-babycare-nl
   name: Little Dutch Rammelaar - Newborn Naturals
   url: https://www.babycare.nl/nl/little-dutch-rammelaar-newborn-naturals.html
@@ -2151,6 +2244,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-030-c10-partycolors-nl
   name: Rammelaar Beer Teddy Rose Smoke
   url: https://partycolors.nl/rammelaar-beer-teddy-rose-smoke
@@ -2158,6 +2252,7 @@ products:
   role: competitor
   shop: partycolors.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-031-c01-bol-com
   name: Liewood Ellery Kappersset – Pale Tuscany Multi Mix
   url: https://www.bol.com/be/nl/p/liewood-ellery-kappersset-pale-tuscany-multi-mix/9300000336017258/
@@ -2172,6 +2267,7 @@ products:
   role: competitor
   shop: babykochs.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-031-c03-neye-dk
   name: Frisørsæt Ellery
   url: https://www.neye.dk/liewood-frisorsaet-ellery-id-17489003600/
@@ -2237,6 +2333,7 @@ products:
   role: competitor
   shop: hobby-koopjes.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-032-c02-zoubisoukids-nl
   name: Pixelhobby - Pixel set Eenhoorn
   url: https://zoubisoukids.nl/product/pixelhobby-pixel-set-eenhoorn/
@@ -2244,6 +2341,7 @@ products:
   role: competitor
   shop: zoubisoukids.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-032-c03-bol-com
   name: Pixelhobby XL set Eenhoorn 41042
   url: https://www.bol.com/nl/nl/p/pixelhobby-xl-set-eenhoorn-41042/9300000173446999/
@@ -2258,6 +2356,7 @@ products:
   role: competitor
   shop: kleinekolibri.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-032-c05-wonderzolder-nl
   name: Pixelhobby Sleutelhanger set - Sweet
   url: https://www.wonderzolder.nl/product/pixelhobby-sleutelhanger-set-sweet/
@@ -2265,6 +2364,7 @@ products:
   role: competitor
   shop: wonderzolder.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-032-c06-artenhobby-nl
   name: PixelHobby Pixel Set Vredesduif
   url: https://www.artenhobby.nl/pixel-set-vredesduif.html
@@ -2272,6 +2372,7 @@ products:
   role: competitor
   shop: artenhobby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-032-c07-craftfulthings-eu
   name: Pixelhobby - Pixel Classic - Vredesduif 44034
   url: https://www.craftfulthings.eu/products/pixelhobby-pixel-classic-vredesduif-44034
@@ -2308,6 +2409,7 @@ products:
   role: competitor
   shop: ilovespeelgoed.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-033-c02-kongessloejd-com
   name: Knuffeldoek - dragon
   url: https://kongessloejd.nl/products/ks107406-sleepy-animals-teddy-bears-dragon
@@ -2315,6 +2417,7 @@ products:
   role: competitor
   shop: kongessloejd.com
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-033-c03-salling-dk
   name: Drage Bamse, Dragon
   url: https://salling.dk/boern/legetoej/bamser-toejdyr/drage-bamse-dragon/p-1237349/
@@ -2418,6 +2521,7 @@ products:
   role: competitor
   shop: letzshop.lu
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-035-c02-makebelieveco-com
   name: Glo Pals® Water Activated Sensory Play Jar – Cozy Cloud
   url: https://makebelieveco.com/products/glo-pals%C2%AE-water-activated-sensory-play-jar-cozy-cloud
@@ -2432,6 +2536,7 @@ products:
   role: competitor
   shop: babylux.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-035-c04-glopals-com
   name: Sensory Play Jar®
   url: https://glopals.com/products/sensoryplayjar
@@ -2468,6 +2573,7 @@ products:
   role: competitor
   shop: kollekt.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-035-c09-thehappylark-com
   name: Glo Pals-Mini Sensory Play Jar Gift Set Pink
   url: https://www.thehappylark.com/products/glo-pals-mini-sensory-play-jar-gift-set-pink
@@ -2489,6 +2595,7 @@ products:
   role: competitor
   shop: psikhouvanjou.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-036-c02-woewoe-nl
   name: Petit Boum Sensorische Donut - Kiwi | WoeWoe | Creatief, sensorisch en open einde speelgoed
   url: https://woewoe.nl/product/petit-boum-sensorische-donut-kiwi/
@@ -2496,6 +2603,7 @@ products:
   role: competitor
   shop: woewoe.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-036-c03-littledepartmentstore-nl
   name: Petit Boum Sensorische Donut Wortels
   url: https://www.littledepartmentstore.nl/petit-boum-sensorische-donut-wortels/
@@ -2503,6 +2611,7 @@ products:
   role: competitor
   shop: littledepartmentstore.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-036-c04-duurzaam-spelen-nl
   name: Petit Boum – Sensorische donut – Wortel
   url: https://duurzaam-spelen.nl/product/petit-boum-sensorische-donut-wortel/
@@ -2510,6 +2619,7 @@ products:
   role: competitor
   shop: duurzaam-spelen.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-036-c05-urmel24-de
   name: PETIT BOUM SENSORY DONUT KIWIS
   url: https://urmel24.de/products/petit-boum-sensory-donut-kiwis-a369a5
@@ -2517,6 +2627,7 @@ products:
   role: competitor
   shop: urmel24.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-036-c06-richtiggutesspielzeug-de
   name: Petit Boum Sensory Donut Carrots
   url: https://www.richtiggutesspielzeug.de/products/petit-boum-sensory-donut-carrots-a7c7a3
@@ -2524,6 +2635,7 @@ products:
   role: competitor
   shop: richtiggutesspielzeug.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-036-c07-laboutiquetamsweet-fr
   name: PETIT BOUM SENSORY DONUT CAROTTE
   url: https://www.laboutiquetamsweet.fr/p-1
@@ -2531,6 +2643,7 @@ products:
   role: competitor
   shop: laboutiquetamsweet.fr
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-037-c01-alweroshop-nl
   name: Coni barnsteen ketting baby
   url: https://www.alweroshop.nl/nl/products/coni-barnsteen-ketting-baby-1
@@ -2538,6 +2651,7 @@ products:
   role: competitor
   shop: alweroshop.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-037-c02-beerenschaap-nl
   name: Amber Barnsteen ketting kind 38cm - Cognac raw
   url: https://www.beerenschaap.nl/barnsteen-ketting-kindermaat-38cm-cognac-raw.html
@@ -2545,6 +2659,7 @@ products:
   role: competitor
   shop: beerenschaap.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-037-c03-littleshoparoundthecorner-nl
   name: Barnsteen ketting kind cognac raw met rookkwarts en afrikaanse jade
   url: https://www.littleshoparoundthecorner.nl/a-53678468/kind-ketting-barnsteen/barnsteen-ketting-kind-cognac-raw-met-rookkwarts-en-afrikaanse-jade/
@@ -2552,6 +2667,7 @@ products:
   role: competitor
   shop: littleshoparoundthecorner.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-037-c04-bol-com
   name: Coni barnsteen ketting kids
   url: https://www.bol.com/nl/nl/p/coni-barnsteen-ketting-kids-cognac-38-cm/9300000110600838/
@@ -2566,6 +2682,7 @@ products:
   role: competitor
   shop: dekleinelama.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-037-c06-kinderwonderland-nl
   name: Barnsteen kinderketting - cognac-aventurijn-jaspis (38 cm)
   url: https://kinderwonderland.nl/products/barnsteen-kinderketting-cognac-aventurijn-jaspis-38-cm
@@ -2573,6 +2690,7 @@ products:
   role: competitor
   shop: kinderwonderland.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-037-c07-waldorfshop-eu
   name: Amber Ketting Cognac
   url: https://www.waldorfshop.eu/nl/p/amber-ketting-cognac_10018406_31065
@@ -2601,6 +2719,7 @@ products:
   role: competitor
   shop: dekinderplaneet.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-038-c02-lelius-lt
   name: MeyCo SwaddleMe kūdikio vystyklas Sand (0-3 mėn.)
   url: https://www.lelius.lt/vystyklai-kokonai/6208-meyco-swaddleme-kudikio-vystyklas-sand-0-3-men-4054703300062.html
@@ -2608,6 +2727,7 @@ products:
   role: competitor
   shop: lelius.lt
   match: Azonos EAN
+  currency: EUR
 - id: kd-038-c03-paradisio-online-be
   name: Inbakeren, Swaddle, 0 - 3 maand | Sand
   url: https://www.paradisio-online.be/baby/inbakeren-swaddle-0-3-maand-sand/p-1306016
@@ -2615,6 +2735,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-038-c04-farmaciadarrabida-pt
   name: Meyco Baby Swaddle Sand 0-3M
   url: https://www.farmaciadarrabida.pt/outros-equipamentos/25074-meyco-baby-swaddle-sand-0-3m-4054703300062.html
@@ -2622,6 +2743,7 @@ products:
   role: competitor
   shop: farmaciadarrabida.pt
   match: Azonos EAN
+  currency: EUR
 - id: kd-038-c05-lebaby-nl
   name: Meyco Branches swaddlemeyco inbakerdoek - sand - 0-3 maanden - 1.0 TOG
   url: https://lebaby.nl/be-nl/producten/meyco-branches-swaddlemeyco-inbakerdoek-sand-0-3-maanden-1-0-tog-dsvxbvdc5s
@@ -2629,6 +2751,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-038-c06-babypark-nl
   name: Meyco Baby Inbakerdoek - 0-3 Mnd - Sand
   url: https://www.babypark.nl/meyco-baby-inbakerdoek.html?supplier_color_axis=sand
@@ -2636,6 +2759,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-038-c07-olijfje-be
   name: Inbakerdoek Sand 0-3 maanden - 1-pack
   url: https://www.olijfje.be/webshop/slapen_23/swaddles_46/inbakerdoek-sand-0-3-maanden-1-pack/
@@ -2643,6 +2767,7 @@ products:
   role: competitor
   shop: olijfje.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-038-c08-meycobaby-com
   name: Inbakerdoek - Branches Sand
   url: https://www.meycobaby.com/products/inbakerdoek-branches-sand
@@ -2657,6 +2782,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-039-c01-feestdeco-nl
   name: Haza Folieballon Nijntje | 95 cm
   url: https://www.feestdeco.nl/folieballon-nijntje-95-cm.html
@@ -2664,6 +2790,7 @@ products:
   role: competitor
   shop: feestdeco.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-039-c02-partywinkel-nl
   name: Nijntje Helium Ballon Leeg 95cm
   url: https://www.partywinkel.nl/products/nijntje-helium-ballon-leeg-95cm
@@ -2671,6 +2798,7 @@ products:
   role: competitor
   shop: partywinkel.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-039-c03-hetsnabbeltje-nl
   name: Folieballon Supershape Nijntje
   url: https://www.hetsnabbeltje.nl/product/folieballon-supershape-nijntje/
@@ -2678,6 +2806,7 @@ products:
   role: competitor
   shop: hetsnabbeltje.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-039-c04-tuf-tuf-nl
   name: Haza - Witbaard Nijntje SuperShape Folie Ballon 95cm | per stuk
   url: https://www.tuf-tuf.nl/nl/nijntje-supershape-folie-ballon-95cm-or-per-stuk.html
@@ -2685,6 +2814,7 @@ products:
   role: competitor
   shop: tuf-tuf.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-039-c05-bol-com
   name: Nijntje - Folieballon - 95 cm
   url: https://www.bol.com/nl/nl/p/nijntje-xl-95-cm/9300000109176064/
@@ -2699,6 +2829,7 @@ products:
   role: competitor
   shop: dailystyle.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-039-c07-slingershop-nl
   name: Folieballon Nijntje XL - 95 cm
   url: https://slingershop.nl/products/nijntje-xl-95-cm
@@ -2706,6 +2837,7 @@ products:
   role: competitor
   shop: slingershop.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-040-c01-villahoera-nl
   name: Maileg Knuffel Beer, Teddy bear plush, Mini - Mushroom, 12cm
   url: https://villahoera.nl/products/maileg-knuffel-beer-teddy-bear-plush-mini-mushroom-12cm
@@ -2713,6 +2845,7 @@ products:
   role: competitor
   shop: villahoera.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-040-c02-ilovespeelgoed-nl
   name: maileg knuffelbeer mushroom - 12 cm
   url: https://ilovespeelgoed.nl/products/maileg-knuffelbeer-mushroom-12-cm
@@ -2720,6 +2853,7 @@ products:
   role: competitor
   shop: ilovespeelgoed.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-040-c03-takatomo-de
   name: Maileg Mini PLUSH TEDDYBEAR Brown (12cm)
   url: https://www.takatomo.de/en/maileg-mini-plush-teddybear-brown-12cm.html
@@ -2727,6 +2861,7 @@ products:
   role: competitor
   shop: takatomo.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-040-c04-kids-world-com
   name: Maileg Knuffel - My First Teddy - 15 cm - Zand
   url: https://www.kids-world.com/nl-nl/maileg-knuffel-my-first-teddy-15-cm-zand-p-367852.html
@@ -2763,6 +2898,7 @@ products:
   role: competitor
   shop: kinderwonderland.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-040-c09-babypark-nl
   name: Moonie The Humming Bear Slaapknuffel - Cappuccino
   url: https://www.babypark.nl/moonie-the-humming-bear-slaapknuffel.html
@@ -2770,6 +2906,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-040-c10-paradisio-online-be
   name: Slaapknuffel, Moonie | The Humming Bear 2.0
   url: https://www.paradisio-online.be/baby/knuffel-slaapknuffel/p-1608254
@@ -2777,6 +2914,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-041-c01-vanastenbabysuperstore-nl
   name: Wikkeldeken Meyco Teddy Bear Warm Brown
   url: https://www.vanastenbabysuperstore.nl/wikkeldeken-meyco-teddy-bear-warm-brown
@@ -2784,6 +2922,7 @@ products:
   role: competitor
   shop: vanastenbabysuperstore.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-041-c02-paradisio-online-be
   name: Wikkeldeken, Meyco Baby Bear | Teddy
   url: https://www.paradisio-online.be/baby/wikkeldeken-meyco-baby-bear-teddy/p-1642570
@@ -2791,6 +2930,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-041-c03-thelittleones-be
   name: Meyco wikkeldeken teddy bear warm brown
   url: https://www.thelittleones.be/product/meyco-wikkeldeken-teddy-bear-warm-brown/
@@ -2798,6 +2938,7 @@ products:
   role: competitor
   shop: thelittleones.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-041-c04-meycobaby-com
   name: Wrap blanket teddy - Bear Warm Brown
   url: https://www.meycobaby.com/en/products/wikkeldeken-teddy-bear-warm-brown
@@ -2812,6 +2953,7 @@ products:
   role: competitor
   shop: natalis.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-041-c06-lebaby-nl
   name: Meyco Bear Wikkeldeken - Teddy
   url: https://lebaby.nl/nl-nl/producten/meyco-bear-wikkeldeken-teddy-c70xcdjzkk
@@ -2819,6 +2961,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-041-c07-baby-dump-nl
   name: Meyco Wikkeldeken
   url: https://www.baby-dump.nl/meyco-wikkeldeken.html
@@ -2826,6 +2969,7 @@ products:
   role: competitor
   shop: baby-dump.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-042-c01-lebaby-nl
   name: Cam Cam Copenhagen Hydrofiele Doek - 70x70 - 2-pack - Amandel
   url: https://lebaby.nl/be-nl/producten/cam-cam-copenhagen-hydrofiele-doek-70x70-2-pack-amandel-sm8bekgkdt
@@ -2833,6 +2977,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-042-c02-mooistekinderkamer-nl
   name: Cam Cam hydrofiele doeken set van drie 70×70 – bows
   url: https://www.mooistekinderkamer.nl/p/cam-cam-hydrofiele-doeken-set-van-drie-70x70-bows/
@@ -2840,6 +2985,7 @@ products:
   role: competitor
   shop: mooistekinderkamer.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-042-c03-kids-world-com
   name: Cam Cam Hydrofiele Doek - 70x70 - 2-pack - Amandel
   url: https://www.kids-world.com/nl-be/cam-cam-hydrofiele-doek-70x70-2pack-amandel-p-252341.html
@@ -2870,6 +3016,7 @@ products:
   role: competitor
   shop: tinydutch.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-043-c02-warenhuisvandijk-nl
   name: Little Dutch Knijprammelaar Flamingo roze
   url: https://www.warenhuisvandijk.nl/little-dutch-knijprammelaar-flamingo-roze
@@ -2877,6 +3024,7 @@ products:
   role: competitor
   shop: warenhuisvandijk.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-043-c03-jollein-nl
   name: Rammelaar - Teddy Bear
   url: https://jollein.nl/products/rammelaar-teddy-bear
@@ -2884,6 +3032,7 @@ products:
   role: competitor
   shop: jollein.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-043-c04-wehkamp-nl
   name: Rammelaar Teddy Bear Biscuit
   url: https://www.wehkamp.nl/jollein-rammelaar-teddy-bear-biscuit-17026585/
@@ -2891,6 +3040,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-043-c05-zusjez-nl
   name: MAILEG | Rammelaar konijn set - powder
   url: https://www.zusjez.nl/a-117930356/maileg-sale-actie/maileg-rammelaar-konijn-set-powder/
@@ -2898,6 +3048,7 @@ products:
   role: competitor
   shop: zusjez.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-043-c06-babygarage-nl
   name: Petit Boum Rammelaar/Bijtring Wortel
   url: https://www.babygarage.nl/product/petit-boum-rammelaar-bijtring-wortel/
@@ -2905,6 +3056,7 @@ products:
   role: competitor
   shop: babygarage.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-043-c07-babycare-nl
   name: Little Dutch Rammelaar - Newborn Naturals
   url: https://www.babycare.nl/nl/little-dutch-rammelaar-newborn-naturals.html
@@ -2912,6 +3064,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-043-c08-partycolors-nl
   name: Rammelaar Beer Teddy Rose Smoke
   url: https://partycolors.nl/rammelaar-beer-teddy-rose-smoke
@@ -2919,6 +3072,7 @@ products:
   role: competitor
   shop: partycolors.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-043-c09-despeelgoedwinkel-nl
   name: Djeco Djeco Rammelaar BabyMaraki
   url: https://www.despeelgoedwinkel.nl/djeco-babymaraki.html
@@ -2926,6 +3080,7 @@ products:
   role: competitor
   shop: despeelgoedwinkel.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-043-c10-wibra-nl
   name: Baby rammelaar
   url: https://www.wibra.nl/assortiment/rammelaar-2/
@@ -2933,6 +3088,7 @@ products:
   role: competitor
   shop: wibra.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-044-c01-woewoe-nl
   name: Petit Boum Sensorische Donut - Wortel | WoeWoe | Creatief, sensorisch en open einde speelgoed
   url: https://woewoe.nl/product/petit-boum-sensorische-donut-wortel/
@@ -2940,6 +3096,7 @@ products:
   role: competitor
   shop: woewoe.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-044-c02-duurzaam-spelen-nl
   name: Petit Boum – Sensorische donut – Wortel
   url: https://duurzaam-spelen.nl/product/petit-boum-sensorische-donut-wortel/
@@ -2947,6 +3104,7 @@ products:
   role: competitor
   shop: duurzaam-spelen.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-044-c03-psikhouvanjou-nl
   name: Petit Boum sensorische donut wortels 6 mnd +
   url: https://www.psikhouvanjou.nl/products/petit-boum-sensorische-donut-wortels-6-mnd
@@ -2954,6 +3112,7 @@ products:
   role: competitor
   shop: psikhouvanjou.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-044-c04-littledepartmentstore-nl
   name: Petit Boum Sensorische Donut Wortels
   url: https://www.littledepartmentstore.nl/petit-boum-sensorische-donut-wortels/
@@ -2961,6 +3120,7 @@ products:
   role: competitor
   shop: littledepartmentstore.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-044-c05-richtiggutesspielzeug-de
   name: Petit Boum Sensory Donut Carrots
   url: https://www.richtiggutesspielzeug.de/products/petit-boum-sensory-donut-carrots-a7c7a3
@@ -2968,6 +3128,7 @@ products:
   role: competitor
   shop: richtiggutesspielzeug.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-044-c06-laboutiquetamsweet-fr
   name: PETIT BOUM SENSORY DONUT CAROTTE
   url: https://www.laboutiquetamsweet.fr/p-1
@@ -2975,6 +3136,7 @@ products:
   role: competitor
   shop: laboutiquetamsweet.fr
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-044-c07-urmel24-de
   name: PETIT BOUM SENSORY DONUT KIWIS
   url: https://urmel24.de/products/petit-boum-sensory-donut-kiwis-a369a5
@@ -2982,6 +3144,7 @@ products:
   role: competitor
   shop: urmel24.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-045-c01-lobbes-nl
   name: Little Dutch Zachte Blokkenset Fairy Garden, 4dlg. online kopen?
   url: https://www.lobbes.nl/speelgoed/babyspeelgoed-en-peuterspeelgoed/babyspeelgoed/stoffen-speelgoed/detail/1061082-little-dutch-zachte-blokkenset-fairy-garden-4dlg
@@ -2989,6 +3152,7 @@ products:
   role: competitor
   shop: lobbes.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-045-c02-lobbesspeelgoed-be
   name: Little Dutch Zachte Blokkenset Fairy Garden, 4dlg. online kopen?
   url: https://www.lobbesspeelgoed.be/speelgoed/babyspeelgoed-en-peuterspeelgoed/babyspeelgoed/stoffen-speelgoed/detail/1061082-little-dutch-zachte-blokkenset-fairy-garden-4dlg
@@ -2996,6 +3160,7 @@ products:
   role: competitor
   shop: lobbesspeelgoed.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-045-c03-foyles-co-uk
   name: 4 Soft Blocks - Fairy Garden
   url: https://www.foyles.co.uk/product/4-soft-blocks-fairy-garden/8713291890169
@@ -3011,6 +3176,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-045-c05-speelgoedwinkel-nl
   name: Little Dutch Zachte blokkenset - Fairy Garden
   url: https://www.speelgoedwinkel.nl/product/little-dutch-zachte-blokkenset-fairy-garden-120894.html
@@ -3018,6 +3184,7 @@ products:
   role: competitor
   shop: speelgoedwinkel.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-045-c06-bol-com
   name: Little Dutch Zachte blokkenset - Fairy Garden
   url: https://www.bol.com/nl/nl/p/little-dutch-zachte-blokkenset-fairy-garden/9300000180243914/
@@ -3032,6 +3199,7 @@ products:
   role: competitor
   shop: baby-dump.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-045-c08-pikolin-si
   name: Little Dutch Set of soft cubes  Fairy Garden
   url: https://www.pikolin.si/en/igra-in-sport/i_10447_little-dutch-set-of-soft-cubes-fairy-garden
@@ -3039,6 +3207,7 @@ products:
   role: competitor
   shop: pikolin.si
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-045-c09-allthekids-co-uk
   name: Soft Blocks - Fairy Garden
   url: https://www.allthekids.co.uk/collections/baby-toddler-toys/products/little-dutch-soft-blocks-fairy-garden
@@ -3069,6 +3238,7 @@ products:
   role: competitor
   shop: umumu.lt
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-047-c01-lazylama-nl
   name: My first bunny - Powder
   url: https://www.lazylama.nl/products/my-first-bunny-powder
@@ -3076,6 +3246,7 @@ products:
   role: competitor
   shop: lazylama.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-047-c02-villahoera-nl
   name: Knuffel konijn in doosje, My First Bunny, Powder
   url: https://villahoera.nl/products/knuffel-konijn-in-doosje-my-first-bunny-powder
@@ -3083,6 +3254,7 @@ products:
   role: competitor
   shop: villahoera.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-047-c03-maileg-com
   name: My first bunny - Powder
   url: https://maileg.com/products/my-first-bunny-powder
@@ -3119,6 +3291,7 @@ products:
   role: competitor
   shop: vanastenbabysuperstore.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-048-c02-degeleflamingo-com
   name: Little Dutch Hoeslaken Safari Leo 90x200 cm | Groen
   url: https://www.degeleflamingo.com/products/little-dutch-hoeslaken-safari-leo-90x200-cm-groen
@@ -3140,6 +3313,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-048-c05-wehkamp-nl
   name: hoeslaken - Safari Leo
   url: https://www.wehkamp.nl/little-dutch-hoeslaken-safari-leo-17585752/
@@ -3147,6 +3321,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-048-c06-babypark-nl
   name: Little Dutch Safari Friends Wieg Hoeslaken - Safari Leo
   url: https://www.babypark.nl/little-dutch-wieg-hoeslaken-safari-leo.html
@@ -3154,6 +3329,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-048-c07-kleertjes-com
   name: hoeslaken - Safari Leo
   url: https://www.kleertjes.com/little-dutch-hoeslaken-safari-leo-17585752/
@@ -3168,6 +3344,7 @@ products:
   role: competitor
   shop: decathlon.com
   match: Azonos EAN
+  currency: EUR
 - id: kd-049-c02-bol-com
   name: Swim Essentials Zonnebrand - Crème - Gevoelige Huid SPF50+ - 50 ml
   url: https://www.bol.com/nl/nl/p/zonnebrand-creme-gevoelig-huid-spf50-50-ml/9300000267949233/
@@ -3182,6 +3359,7 @@ products:
   role: competitor
   shop: lobbes.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-049-c04-lobbesspeelgoed-be
   name: Swim Essentials - Zonnebrandcreme Gevoelige Huid SPF50 online kopen?
   url: https://www.lobbesspeelgoed.be/speelgoed/babyspeelgoed-en-peuterspeelgoed/verzorging/detail/1985384-swim-essentials-zonnebrandcreme-gevoelige-huid-spf50
@@ -3189,6 +3367,7 @@ products:
   role: competitor
   shop: lobbesspeelgoed.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-049-c05-kinikid-sk
   name: Swim Essentials Opaľovací krém Sensitive SPF50+ 50 ml
   url: https://www.kinikid.sk/p/swim-essentials-opalovaci-krem-sensitive-spf50-50-ml
@@ -3196,6 +3375,7 @@ products:
   role: competitor
   shop: kinikid.sk
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-049-c06-jumbo-com
   name: Jumbo Kids Zonnebrand Crème SPF 50 Sensitive 50ML
   url: https://www.jumbo.com/producten/jumbo-kids-zonnebrand-creme-spf-50-sensitive-50ml-666039TUB
@@ -3210,6 +3390,7 @@ products:
   role: competitor
   shop: hema.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-049-c08-ah-nl
   name: Ambre Solaire Zonnebrandmelk kids sensitive spf50+
   url: https://www.ah.nl/producten/product/wi111206/ambre-solaire-zonnebrandmelk-kids-sensitive-spf50
@@ -3217,6 +3398,7 @@ products:
   role: competitor
   shop: ah.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-049-c09-glavio-com
   name: Sensitive napkrém SPF50+, 50 ml
   url: https://glavio.hu/sensitive-napkrem-spf50-50-ml
@@ -3246,6 +3428,7 @@ products:
   role: competitor
   shop: kinderwonderland.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-050-c03-paradisio-online-be
   name: Slaapknuffel, Moonie | The Humming Bear 2.0
   url: https://www.paradisio-online.be/baby/knuffel-slaapknuffel/p-1608254
@@ -3253,6 +3436,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-050-c04-makebelieveco-com
   name: Moonie® Organic Humming Bear with Lamp – Polar
   url: https://makebelieveco.com/products/moonie%C2%AE-organic-humming-bear-with-lamp-polar
@@ -3303,6 +3487,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-051-c01-kuscheltier-boutique
   name: Palm Pals Rehkitz Dalia Fawn
   url: https://www.kuscheltier.boutique/aurora/palm-pals/rehkitz-dalia-fawn.html
@@ -3317,6 +3502,7 @@ products:
   role: competitor
   shop: grasonderjevoeten.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-052-c02-dekinderplaneet-be
   name: Mushie Coin & Tube Sorting Set
   url: https://www.dekinderplaneet.be/nl/mushie-coin-tube-sorting-set-1034175
@@ -3324,6 +3510,7 @@ products:
   role: competitor
   shop: dekinderplaneet.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-052-c03-enanoshop-com
   name: Mushie Sorter monet i patyczków 10m+
   url: https://enanoshop.com/Mushie-Sorter-monet-i-patyczkow-10m-p115917
@@ -3338,6 +3525,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-052-c05-littlebabypocket-de
   name: Mushie Sortierset - Coin & Tube
   url: https://littlebabypocket.de/products/mushie-sortierset-coin-tube
@@ -3345,6 +3533,7 @@ products:
   role: competitor
   shop: littlebabypocket.de
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-052-c06-target-com
   name: Mushie Coin & Tube Sorting Set
   url: https://www.target.com/p/-/A-1002577387
@@ -3388,6 +3577,7 @@ products:
   role: competitor
   shop: hello-world.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-053-c02-bol-com
   name: Glopals Light-Up Character Sesamstraat Koekiemonster Badspeelgoed GP-FIN-CHAR-COOKIE
   url: https://www.bol.com/nl/nl/p/glo-cookie-monster-pals-badspeelfiguurtje/9300000127273819/?offerUid=88915f42-80e3-402a-b5c2-098afbcc30e6
@@ -3402,6 +3592,7 @@ products:
   role: competitor
   shop: minifem.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-053-c04-kinderwonderland-nl
   name: Glo Pals - sensorische lichtgevende blokjes voor in bad of sensorisch spel - Sesamstraat Cookie Monster - 2 stuks incl. speelvriendje
   url: https://kinderwonderland.nl/products/glo-pals-sesamstraat-cookie-monster-speelvriendje
@@ -3409,6 +3600,7 @@ products:
   role: competitor
   shop: kinderwonderland.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-053-c05-kids-world-com
   name: Glo Pals Figuur/Sensorische kubussen m. Licht - 10 cm - Cookie M
   url: https://www.kids-world.com/nl-nl/glo-pals-figuur-sensorische-kubussen-licht-10-cm-cookie-p-462366.html
@@ -3423,6 +3615,7 @@ products:
   role: competitor
   shop: letzshop.lu
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-053-c07-bijbroerenzus-nl
   name: Glo pals Glo Pals poppetje Christmas
   url: https://www.bijbroerenzus.nl/glo-pals-poppetje-christmas.html
@@ -3430,6 +3623,7 @@ products:
   role: competitor
   shop: bijbroerenzus.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-053-c08-glopals-com
   name: Lumi® Light-Up Character
   url: https://glopals.com/products/lumi-character
@@ -3444,6 +3638,7 @@ products:
   role: competitor
   shop: latribulittlekids.es
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-053-c10-shop-monstertjes-be
   name: Glo Pals Characters Christmas
   url: https://shop.monstertjes.be/glo-pals-characters-christmas.html
@@ -3451,6 +3646,7 @@ products:
   role: competitor
   shop: shop.monstertjes.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-054-c01-bizou-be
   name: Palm Pals Knuffel - Cassia Hot Cocoa
   url: https://www.bizou.be/knuffel-cassia-hot-cocoa.html
@@ -3458,6 +3654,7 @@ products:
   role: competitor
   shop: bizou.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-054-c02-zoubisoukids-nl
   name: Palm Pals - Hot cocoa 13cm
   url: https://zoubisoukids.nl/product/palm-pals-hot-cocoa-13cm/
@@ -3465,6 +3662,7 @@ products:
   role: competitor
   shop: zoubisoukids.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-054-c03-kuscheltier-boutique
   name: Palm Pals Heiße Schokolade Cassia Hot Cocoa
   url: https://www.kuscheltier.boutique/aurora/palm-pals/heisse-schokolade-cassia-hot-cocoa.html
@@ -3479,6 +3677,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-055-c02-paradisio-online-be
   name: Klamboe, Meyco Baby, voor babybed/eenpersoonsbed | Forest Green
   url: https://www.paradisio-online.be/baby/klamboe-meyco-baby-voor-babybed-eenpersoonsbed-forest-green/p-1109204
@@ -3486,6 +3685,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-055-c03-hamleys-cz
   name: Meyco baldachýn - Forest green
   url: https://www.hamleys.cz/produkt/meyco-baldachyn-forest-green.html
@@ -3501,6 +3701,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-055-c05-baby-race-nl
   name: Meyco klamboe
   url: https://www.baby-race.nl/shop/meyco-klamboe/
@@ -3508,6 +3709,7 @@ products:
   role: competitor
   shop: baby-race.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-056-c01-kids-world-com
   name: Cam Cam Changing Bag to Dolls - Bows
   url: https://www.kids-world.com/en-dk/cam-cam-changing-bag-to-dolls-bows-p-373039.html
@@ -3522,6 +3724,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-057-c02-kids-world-com
   name: Cam Cam Hydrofiele Doek - 70x70 - 2-pack - Amandel
   url: https://www.kids-world.com/nl-be/cam-cam-hydrofiele-doek-70x70-2pack-amandel-p-252341.html
@@ -3536,6 +3739,7 @@ products:
   role: competitor
   shop: mooistekinderkamer.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-057-c04-nordichaus-ch
   name: Muslin Cloths - 2 pcs.
   url: https://nordichaus.ch/product/muslin-cloths-fairy-floral-blossom-little-dutch/?attribute_pa_color=blooming-safari
@@ -3559,6 +3763,7 @@ products:
   role: competitor
   shop: artenhobby.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-058-c02-craftfulthings-eu
   name: Pixelhobby - Pixel Classic - Vredesduif 44034
   url: https://www.craftfulthings.eu/products/pixelhobby-pixel-classic-vredesduif-44034
@@ -3580,6 +3785,7 @@ products:
   role: competitor
   shop: hobby-koopjes.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-058-c05-zoubisoukids-nl
   name: Pixelhobby - Pixel set Eenhoorn
   url: https://zoubisoukids.nl/product/pixelhobby-pixel-set-eenhoorn/
@@ -3587,6 +3793,7 @@ products:
   role: competitor
   shop: zoubisoukids.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-058-c06-wonderzolder-nl
   name: Pixelhobby Sleutelhanger set - Sweet
   url: https://www.wonderzolder.nl/product/pixelhobby-sleutelhanger-set-sweet/
@@ -3594,6 +3801,7 @@ products:
   role: competitor
   shop: wonderzolder.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-058-c07-pixeln-ch
   name: Pixelhobby Schlüsselanhänger Set - Kaktus
   url: https://pixeln.ch/produkt/pixelhobby-schluesselanhaenger-set-kaktus/
@@ -3609,6 +3817,7 @@ products:
   role: competitor
   shop: kleinekolibri.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-058-c09-imusic-com
   name: Pixel Medaillon Set Mädchen
   url: https://imusic.com/merchandise/8718468120131/p-2023-pixel-medaillon-set-madchen-toys
@@ -3630,6 +3839,7 @@ products:
   role: competitor
   shop: hipster-baby.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-059-c02-legetoejseksperten-dk
   name: Liewood Julekalender - Blaise Christmas Calendar - Festive/Sandy
   url: https://legetoejseksperten.dk/produkt/liewood-julekalender-blaise-christmas-calendar-festive-sandy-463512-7008968
@@ -3645,6 +3855,7 @@ products:
   role: competitor
   shop: babymoon.fi
   match: Azonos EAN
+  currency: EUR
 - id: kd-059-c04-kids-world-com
   name: Liewood Blaise Weihnachtskalender - Festlich/Sandy
   url: https://www.kids-world.com/de-at/liewood-blaise-weihnachtskalender-festlich-sandy-p-463512.html
@@ -3682,6 +3893,7 @@ products:
   role: competitor
   shop: psikhouvanjou.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-060-c02-babylux-nl
   name: Mrs Ertha Lunchbox - Flower Buds
   url: https://babylux.ch/shop/babygeschirr-schweiz-nachhaltig-sicher/mrs-ertha-lunchbox-flower-buds/
@@ -3704,6 +3916,7 @@ products:
   role: competitor
   shop: littleyune.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-060-c05-miniminimalistic-com
   name: MRS ERTHA - Lunchboxes
   url: https://www.miniminimalistic.com/product-page/mrs-ertha-lunchboxes
@@ -3718,6 +3931,7 @@ products:
   role: competitor
   shop: meesteraap.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-060-c07-tutete-com
   name: Lunch Box Animals Picnic
   url: https://www.tutete.com/tienda/it/88_scuola/214_lunch-box/88289_lunch-box-animals-picnic.html
@@ -3739,6 +3953,7 @@ products:
   role: competitor
   shop: letzshop.lu
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-060-c10-bol-com
   name: Petit Monkey | Brooddoos Bento Animals Picnic
   url: https://www.bol.com/nl/nl/p/lunchbox-bento-animals-picnic-petit-monkey/9300000190389130/
@@ -3753,6 +3968,7 @@ products:
   role: competitor
   shop: mooistekinderkamer.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-061-c02-lebaby-nl
   name: Cam Cam Copenhagen Aankleedkussen Bows van biokatoen
   url: https://lebaby.nl/be-nl/producten/cam-cam-copenhagen-aankleedkussen-bows-van-biokatoen-xx827e6wth
@@ -3760,6 +3976,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-061-c03-babyshop-com
   name: Baby Changing Pad Bows
   url: https://www.babyshop.com/en-it/p/bows-one-size-121595/CC-330A-P93-000-WW?marketSelector=show
@@ -3774,6 +3991,7 @@ products:
   role: competitor
   shop: distrinode.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-062-c02-bizou-be
   name: Palm Pals Knuffel - Marius Nutcracker
   url: https://www.bizou.be/knuffel-marius-nutcracker.html
@@ -3781,6 +3999,7 @@ products:
   role: competitor
   shop: bizou.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-062-c03-djaevlehuen-dk
   name: Palm Pals - Marius Nøddeknækker 13 cm
   url: https://djaevlehuen.dk/products/palm-pals-marius-noddeknaekker-13-cm
@@ -3832,6 +4051,7 @@ products:
   role: competitor
   shop: bijbroerenzus.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-064-c01-moedersmooiste-eu
   name: Doll's Carrier - Bows
   url: https://moedersmooiste.eu/camcam-doll-s-carrier-bows-roze
@@ -3853,6 +4073,7 @@ products:
   role: competitor
   shop: babywinkel.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-065-c02-decathlon-com
   name: Swim Essentials Badpak Meisjes - Blauw - Luipaard
   url: https://www.decathlon.nl/p/mp/swim-essentials-badpak-meisjes-blauw-luipaard/56201173-254a-41b5-b9de-455645ab8e3a/c255c5
@@ -3860,6 +4081,7 @@ products:
   role: competitor
   shop: decathlon.com
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-065-c03-bol-com
   name: Swim Essentials | Gestreept Gestreept Meisjes UV Badpak met korte mouwen
   url: https://www.bol.com/nl/nl/p/swim-essentials-beige-panterprint-meisjes-uv-badpak-met-lange-mouwen-maat-134-140/9300000229575580/
@@ -3874,6 +4096,7 @@ products:
   role: competitor
   shop: limango.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-065-c05-wehkamp-nl
   name: badpak met strepen en printopdruk roze/wit
   url: https://www.wehkamp.nl/swim-essentials-badpak-met-strepen-en-printopdruk-roze-wit-17524611/
@@ -3881,6 +4104,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-066-c01-bol-com
   name: Mrs Ertha pratende papegaai speelgoed - nude
   url: https://www.bol.com/nl/nl/p/mrs-ertha-pratende-papegaai-speelgoed-nude/9300000167183391/
@@ -3895,6 +4119,7 @@ products:
   role: competitor
   shop: lazylama.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-066-c03-minifem-nl
   name: Mrs Ertha Pierre The Talking Parrot Rusted
   url: https://minifem.nl/product/mrs-ertha-pierre-the-talking-parrot-rusted/
@@ -3902,6 +4127,7 @@ products:
   role: competitor
   shop: minifem.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-067-c01-cotswoldtrading-com
   name: Doing Goods Woody Heart Circus Trinket Box
   url: https://www.cotswoldtrading.com/homeware-c5/decorative-accessories-c91/doing-goods-woody-heart-circus-trinket-box-p47974
@@ -3923,6 +4149,7 @@ products:
   role: competitor
   shop: mooivanver.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-067-c04-leuk-erbijvanelles-nl
   name: Doing Goods Circus Box "Chelsey" | ivoor
   url: https://www.leuk-erbijvanelles.nl/a-61171692/doing-goods/doing-goods-circus-box-chelsey-ivoor/
@@ -3930,6 +4157,7 @@ products:
   role: competitor
   shop: leuk-erbijvanelles.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-067-c05-latarifa-nl
   name: Bailey Circus Sieradendoosje Klein Wit / Doing Goods
   url: https://www.latarifa.nl/a-120993318/schalen-en-sieradendoosjes/bailey-circus-sieradendoosje-klein-wit-doing-goods/
@@ -3937,6 +4165,7 @@ products:
   role: competitor
   shop: latarifa.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-067-c06-studiojess-be
   name: Sieradendoosje Baily circus wit klein
   url: https://www.studiojess.be/products/sieradendoosje-baily-circus-wit-klein
@@ -3944,6 +4173,7 @@ products:
   role: competitor
   shop: studiojess.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-067-c07-bol-com
   name: Doing Goods Bailey Circus Box - Klein - White
   url: https://www.bol.com/nl/nl/p/doing-goods-bailey-circus-box-white/9300000238417431/
@@ -3958,6 +4188,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-068-c02-kleertjes-com
   name: wiegdeken (100x70 cm) - Geel -  Safari Leo
   url: https://www.kleertjes.com/little-dutch-wiegdeken-100x70-cm-geel-safari-leo-17585721/
@@ -4026,6 +4257,7 @@ products:
   role: competitor
   shop: vierseizoenen.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-070-c03-kongessloejd-com
   name: METALLIC COLORING PENCILS - multi
   url: https://kongessloejd.be/products/metallic-coloring-pencils-creative-play-multi
@@ -4033,6 +4265,7 @@ products:
   role: competitor
   shop: kongessloejd.com
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-071-c01-bol-com
   name: Doing Goods Bailey Circus Box - Klein - White
   url: https://www.bol.com/nl/nl/p/doing-goods-bailey-circus-box-white/9300000238417431/
@@ -4047,6 +4280,7 @@ products:
   role: competitor
   shop: latarifa.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-071-c03-doing-goods-com
   name: Bailey Circus Sieradendoosje Klein Wit
   url: https://www.doing-goods.com/nl-nl/bailey-circus-sieradendoosje-klein-wit/
@@ -4061,6 +4295,7 @@ products:
   role: competitor
   shop: studiojess.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-071-c05-mooivanver-nl
   name: Doing Goods Circus Sieradendoosje Chelsey
   url: https://www.mooivanver.nl/a-102330501/doosjes/doing-goods-circus-sieradendoosje-chelsey/
@@ -4068,6 +4303,7 @@ products:
   role: competitor
   shop: mooivanver.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-071-c06-leuk-erbijvanelles-nl
   name: Doing Goods Circus Box "Chelsey" | ivoor
   url: https://www.leuk-erbijvanelles.nl/a-61171692/doing-goods/doing-goods-circus-box-chelsey-ivoor/
@@ -4075,6 +4311,7 @@ products:
   role: competitor
   shop: leuk-erbijvanelles.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-071-c07-cotswoldtrading-com
   name: Doing Goods Woody Heart Circus Trinket Box
   url: https://www.cotswoldtrading.com/homeware-c5/decorative-accessories-c91/doing-goods-woody-heart-circus-trinket-box-p47974
@@ -4105,6 +4342,7 @@ products:
   role: competitor
   shop: kongessloejd.com
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-072-c04-houseofkids-com
   name: My sticker book Stickers
   url: https://houseofkids.com/products/konges-sloejd-my-sticker-book-stickers-circus
@@ -4119,6 +4357,7 @@ products:
   role: competitor
   shop: spruitkidsconceptstore.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-073-c02-bol-com
   name: Alwero wanten gully junior
   url: https://www.bol.com/be/nl/p/alwero-wanten-gully-junior/9300000340564438/
@@ -4133,6 +4372,7 @@ products:
   role: competitor
   shop: alweroshop.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-074-c01-bol-com
   name: Pixelhobby Medaillon Themabox - Sinterklaas
   url: https://www.bol.com/nl/nl/p/pixelhobby-medaillion-themabox-sinterklaas/9300000223451321/?offerUid=fc2e0196-7d98-4c42-bcbd-28d39f335d66
@@ -4147,6 +4387,7 @@ products:
   role: competitor
   shop: artenhobby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-074-c03-wonderzolder-nl
   name: Pixelhobby Sleutelhanger set - Sweet
   url: https://www.wonderzolder.nl/product/pixelhobby-sleutelhanger-set-sweet/
@@ -4154,6 +4395,7 @@ products:
   role: competitor
   shop: wonderzolder.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-074-c04-imusic-com
   name: Pixel Medaillon Set Mädchen
   url: https://imusic.com/merchandise/8718468120131/p-2023-pixel-medaillon-set-madchen-toys
@@ -4168,6 +4410,7 @@ products:
   role: competitor
   shop: lobbes.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-075-c02-babyplus-nl
   name: Swim Essentials Zwembandjes 2-6 jaar
   url: https://babyplus.nl/product/swim-essentials-zwembandjes-2-6-jaar/
@@ -4175,6 +4418,7 @@ products:
   role: competitor
   shop: babyplus.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-075-c03-les-petits-marmots-com
   name: Brassard 2-6 ans - Surfer
   url: https://www.les-petits-marmots.com/product/__show/4749/brassard-2-6-ans--surfer
@@ -4189,6 +4433,7 @@ products:
   role: competitor
   shop: theblindspot.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-076-c02-dewildakker-nl
   name: Alwero bodywarmer | Pos light | Antraciet
   url: https://www.dewildakker.nl/a-143217793/nieuw-in-de-collectie/alwero-bodywarmer-pos-light-antraciet/
@@ -4196,6 +4441,7 @@ products:
   role: competitor
   shop: dewildakker.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-076-c03-bol-com
   name: Alwero Bodywarmer light Pos Sandbrown
   url: https://www.bol.com/be/nl/p/alwero-bodywarmer-light-pos-sandbrown-m/9300000187886118/
@@ -4210,6 +4456,7 @@ products:
   role: competitor
   shop: alweroshop.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-077-c01-volverwachting-nl
   name: Meyco Laken Plume - off white
   url: https://www.volverwachting.nl/product/meyco-laken-plume-off-white/
@@ -4217,6 +4464,7 @@ products:
   role: competitor
   shop: volverwachting.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-078-c01-woewoe-nl
   name: Glo Pals lichtgevende blokjes - dierentuin | WoeWoe | Creatief, sensorisch en open einde speelgoed
   url: https://woewoe.nl/product/glo-pals-lichtgevende-blokjes-dierentuin/
@@ -4224,6 +4472,7 @@ products:
   role: competitor
   shop: woewoe.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-078-c02-hippegifts-nl
   name: Glo Pals light up cubes Lumi paars
   url: https://www.hippegifts.nl/a-123734058/overig-speelgoed/glo-pals-light-up-cubes-lumi-paars/
@@ -4231,6 +4480,7 @@ products:
   role: competitor
   shop: hippegifts.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-078-c03-minifem-nl
   name: Glo Pals Poppetje met Light-Up Cubes Sesamstraat Cookiemonster Blauw
   url: https://minifem.nl/product/glo-pals-poppetje-met-light-up-cubes-sesamstraat-cookiemonster-blauw/
@@ -4238,6 +4488,7 @@ products:
   role: competitor
   shop: minifem.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-078-c04-babycare-nl
   name: Glo Pals Light-Up Cubes Lumi
   url: https://www.babycare.nl/en/glo-pals-light-up-cubes-lumi.html
@@ -4245,6 +4496,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-078-c05-glopals-com
   name: Lumi Light-Up Cubes 4-Pack
   url: https://glopals.com/products/lumi-light-up-cubes
@@ -4259,6 +4511,7 @@ products:
   role: competitor
   shop: andersspelen.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-078-c07-mmspace-eu
   name: Glo Pals, Lumi Light-Up Cubes
   url: https://mmspace.eu/en/products/glo-pals-lumi-light-up-cubes-20.html
@@ -4273,6 +4526,7 @@ products:
   role: competitor
   shop: lapouleapois.fr
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-078-c09-bol-com
   name: Glo Pals Cubes
   url: https://www.bol.com/nl/nl/p/glo-pals-light-up-cubes-limited-edition-auto/9300000241775290/
@@ -4340,6 +4594,7 @@ products:
   role: competitor
   shop: tjongeukkie.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-080-c02-spelletjesboer-nl
   name: Little Dutch SF speelkleed LD8317
   url: https://www.spelletjesboer.nl/little-dutch-sf-speelkleed-ld8317/
@@ -4347,6 +4602,7 @@ products:
   role: competitor
   shop: spelletjesboer.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-080-c03-speelgoedwinkel-nl
   name: Little Dutch Safari Friends Activiteiten Speelkleed
   url: https://www.speelgoedwinkel.nl/product/little-dutch-safari-friends-activiteiten-speelkleed-385711.html
@@ -4354,6 +4610,7 @@ products:
   role: competitor
   shop: speelgoedwinkel.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-080-c04-vanastenbabysuperstore-nl
   name: Activiteiten Speelkleed Little Dutch  Safari Friends
   url: https://www.vanastenbabysuperstore.nl/activiteiten-speelkleed-little-dutch-safari-friends
@@ -4361,6 +4618,7 @@ products:
   role: competitor
   shop: vanastenbabysuperstore.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-080-c05-thelittleones-be
   name: Little Dutch activiteiten speelkleed Safari Friends
   url: https://www.thelittleones.be/product/little-dutch-activiteiten-speelkleed-safari-friends/
@@ -4368,6 +4626,7 @@ products:
   role: competitor
   shop: thelittleones.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-080-c06-babycare-nl
   name: Little Dutch Activity Play Mat - Safari Friends
   url: https://www.babycare.nl/en/little-dutch-activity-play-mat-safari-friends.html
@@ -4375,6 +4634,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-080-c07-twiskbv-nl
   name: Little Dutch SF speelkleed LD8317
   url: https://twiskbv.nl/speelgoed/little-dutch/safari-friends/little-dutch-sf-speelkleed-ld8317.html
@@ -4382,6 +4642,7 @@ products:
   role: competitor
   shop: twiskbv.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-081-c01-bol-com
   name: Longsleeve Konges Sløjd Lin LS Tee Brazilian Sand-86
   url: https://www.bol.com/be/nl/p/longsleeve-konges-slojd-lin-ls-tee-brazilian-sand-86/9300000220475735/
@@ -4403,6 +4664,7 @@ products:
   role: competitor
   shop: intertoys.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-082-c02-lobbes-nl
   name: Little Dutch Ringrammelaar Newborn online kopen?
   url: https://www.lobbes.nl/speelgoed/babyspeelgoed-en-peuterspeelgoed/babyspeelgoed/boxspeelgoed/rammelaars/detail/1061045-little-dutch-ringrammelaar-newborn
@@ -4410,6 +4672,7 @@ products:
   role: competitor
   shop: lobbes.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-082-c03-wehkamp-nl
   name: Ringrammelaar
   url: https://www.wehkamp.nl/little-dutch-newborn-naturals-ringrammelaar-17405172/
@@ -4417,6 +4680,7 @@ products:
   role: competitor
   shop: wehkamp.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-082-c04-kleertjes-com
   name: Ringrammelaar
   url: https://www.kleertjes.com/little-dutch-newborn-naturals-ringrammelaar-17405172/
@@ -4431,6 +4695,7 @@ products:
   role: competitor
   shop: babyjungle.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-082-c06-speelgoedwinkel-nl
   name: Little Dutch Ringrammelaar Newborn Naturals
   url: https://www.speelgoedwinkel.nl/product/little-dutch-ringrammelaar-newborn-naturals-320786.html
@@ -4438,6 +4703,7 @@ products:
   role: competitor
   shop: speelgoedwinkel.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-082-c07-babycare-nl
   name: Little Dutch Rammelaar - Newborn Naturals
   url: https://www.babycare.nl/nl/little-dutch-rammelaar-newborn-naturals.html
@@ -4445,6 +4711,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-082-c08-tutete-com
   name: Set Gift Newborn Rattle Rabbit Mint
   url: https://www.tutete.com/tienda/en/703_baby-accessories/169_swaddles/98886_set-gift-newborn-rattle-rabbit-mint.html
@@ -4459,6 +4726,7 @@ products:
   role: competitor
   shop: jollein.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-082-c10-tinydutch-nl
   name: Jollein Rammelaar Teddy Bear - Biscuit
   url: https://www.tinydutch.nl/product/jollein-rammelaar-teddy-bear-biscuit
@@ -4466,6 +4734,7 @@ products:
   role: competitor
   shop: tinydutch.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-083-c01-wonderzolder-nl
   name: Pixelhobby Sleutelhanger set - Sweet
   url: https://www.wonderzolder.nl/product/pixelhobby-sleutelhanger-set-sweet/
@@ -4473,6 +4742,7 @@ products:
   role: competitor
   shop: wonderzolder.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-083-c02-imusic-com
   name: Pixel Medaillon Set Mädchen
   url: https://imusic.com/merchandise/8718468120131/p-2023-pixel-medaillon-set-madchen-toys
@@ -4494,6 +4764,7 @@ products:
   role: competitor
   shop: artenhobby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-084-c01-bijbroerenzus-nl
   name: Glo pals Glo Pals poppetje Christmas
   url: https://www.bijbroerenzus.nl/glo-pals-poppetje-christmas.html
@@ -4501,6 +4772,7 @@ products:
   role: competitor
   shop: bijbroerenzus.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-084-c02-latribulittlekids-es
   name: GLO PALS CHRISTMAS
   url: https://latribulittlekids.es/juguetes-de-bano/2550-glo-pals-christmas.html
@@ -4508,6 +4780,7 @@ products:
   role: competitor
   shop: latribulittlekids.es
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-084-c03-shop-monstertjes-be
   name: Glo Pals Characters Christmas
   url: https://shop.monstertjes.be/glo-pals-characters-christmas.html
@@ -4515,6 +4788,7 @@ products:
   role: competitor
   shop: shop.monstertjes.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-084-c04-letzshop-lu
   name: Glo Pals Christmas Pal Leuchtwürfel
   url: https://letzshop.lu/en/products/glo-pals-christmas-pal-leuchtwuerfel-1ad077
@@ -4522,6 +4796,7 @@ products:
   role: competitor
   shop: letzshop.lu
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-084-c05-minifem-nl
   name: Glo Pals Poppetje met Light-Up Cubes Sesamstraat Cookiemonster Blauw
   url: https://minifem.nl/product/glo-pals-poppetje-met-light-up-cubes-sesamstraat-cookiemonster-blauw/
@@ -4529,6 +4804,7 @@ products:
   role: competitor
   shop: minifem.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-084-c06-kinderwonderland-nl
   name: Glo Pals - sensorische lichtgevende blokjes voor in bad of sensorisch spel - Sesamstraat Cookie Monster - 2 stuks incl. speelvriendje
   url: https://kinderwonderland.nl/products/glo-pals-sesamstraat-cookie-monster-speelvriendje
@@ -4536,6 +4812,7 @@ products:
   role: competitor
   shop: kinderwonderland.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-084-c07-glopals-com
   name: Lumi® Light-Up Character
   url: https://glopals.com/products/lumi-character
@@ -4550,6 +4827,7 @@ products:
   role: competitor
   shop: hello-world.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-084-c09-kids-world-com
   name: Glo Pals Figuur/Sensorische kubussen m. Licht - 10 cm - Cookie M
   url: https://www.kids-world.com/nl-nl/glo-pals-figuur-sensorische-kubussen-licht-10-cm-cookie-p-462366.html
@@ -4585,6 +4863,7 @@ products:
   role: competitor
   shop: meesteraap.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-085-c04-tutete-com
   name: Lunch Box Animals Picnic
   url: https://www.tutete.com/tienda/it/88_scuola/214_lunch-box/88289_lunch-box-animals-picnic.html
@@ -4599,6 +4878,7 @@ products:
   role: competitor
   shop: psikhouvanjou.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-085-c06-littleyune-nl
   name: Lunchbox Cupcake | Little Yune
   url: https://littleyune.nl/product/mrs-ertha-lunchbox-cupcake/
@@ -4606,6 +4886,7 @@ products:
   role: competitor
   shop: littleyune.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-085-c07-babylux-nl
   name: Mrs Ertha Lunchbox - Flower Buds
   url: https://babylux.ch/shop/babygeschirr-schweiz-nachhaltig-sicher/mrs-ertha-lunchbox-flower-buds/
@@ -4635,6 +4916,7 @@ products:
   role: competitor
   shop: letzshop.lu
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-086-c01-littlelegends-nl
   name: MRS ERTHA STRAPIES HORLOGE FLOWER
   url: https://www.littlelegends.nl/clothing/mrs-ertha/mrs-ertha-strapies-horloge-flower.html
@@ -4642,6 +4924,7 @@ products:
   role: competitor
   shop: littlelegends.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-087-c01-kids-world-com
   name: Petit Monkey Lunchbox - Popsicles - 1.5 L - Desert Rose
   url: https://www.kids-world.com/en-us/petit-monkey-lunchbox-popsicles-15-desert-rose-p-189566.html
@@ -4663,6 +4946,7 @@ products:
   role: competitor
   shop: letzshop.lu
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-087-c04-tutete-com
   name: Lunch Box Popsicles Desert Rose/Soft Coral
   url: https://www.tutete.com/tienda/en/88_playschool/214_lunch-boxes/45977_lunch-box-popsicles-desert-rosesoft-coral.html
@@ -4677,6 +4961,7 @@ products:
   role: competitor
   shop: psikhouvanjou.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-087-c06-littleyune-nl
   name: Lunchbox Cupcake | Little Yune
   url: https://littleyune.nl/product/mrs-ertha-lunchbox-cupcake/
@@ -4684,6 +4969,7 @@ products:
   role: competitor
   shop: littleyune.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-087-c07-meesteraap-nl
   name: Petit Monkey Bento Lunchbox Upside Down Animals
   url: https://www.meesteraap.nl/a-89091095-7056891/petit-monkey/petit-monkey-bento-lunchbox-upside-down-animals/
@@ -4691,6 +4977,7 @@ products:
   role: competitor
   shop: meesteraap.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-087-c08-babylux-nl
   name: Mrs Ertha Lunchbox - Flower Buds
   url: https://babylux.ch/shop/babygeschirr-schweiz-nachhaltig-sicher/mrs-ertha-lunchbox-flower-buds/
@@ -4728,6 +5015,7 @@ products:
   role: competitor
   shop: woewoe.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-089-c02-whybaby-pl
   name: Glo Pals SPACE Fun Fillers Wkład figurki brokaty i barwniki do słoików zabaw sensorycznych
   url: https://whybaby.pl/glo-pals-space-fun-fillers-wklad-figurki-brokaty-i-barwniki-do-sloikow-zabaw-sensorycznych/
@@ -4743,6 +5031,7 @@ products:
   role: competitor
   shop: donsaapje.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-089-c04-misslemonade-pl
   name: 'Glo Pals - Fun Fillers Sensory Space: Figures and Glitters for Sensory Jars and Play'
   url: https://misslemonade.pl/en/bath-baby-care/bath-toys/glo-pals-glo-pals-fun-fillers-sensory-space-figures-and-glitters-for-sensory-jars-and-play-.html
@@ -4772,6 +5061,7 @@ products:
   role: competitor
   shop: intertoys.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-090-c02-bol-com
   name: Little Dutch Zachte Activiteitenkubus - Forest Friends
   url: https://www.bol.com/nl/nl/p/little-dutch-zachte-activiteitenkubus-forest-friends/9300000180239444/
@@ -4786,6 +5076,7 @@ products:
   role: competitor
   shop: deboomhut.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-090-c04-figgli-com
   name: Little Dutch Activiteitenkubus Little Dutch Forest Friends
   url: https://figgli.com/nl-nl/producten/little-dutch-activiteitenkubus-little-dutch-forest-friends-smp0gpr0je
@@ -4800,6 +5091,7 @@ products:
   role: competitor
   shop: babyjungle.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-090-c06-paradisio-online-be
   name: Zachte activiteitenkubus, Little Dutch Zachte blokkenset
   url: https://www.paradisio-online.be/baby/zachte-activiteitenkubus-little-dutch-made-by-tiamo-zachte-blokkenset/p-1560564
@@ -4807,6 +5099,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-090-c07-pikolin-si
   name: Little Dutch Soft activity cube Forest Friends GRS
   url: https://www.pikolin.si/en/igra-in-sport/i_10351_little-dutch-soft-activity-cube-forest-friends-grs
@@ -4814,6 +5107,7 @@ products:
   role: competitor
   shop: pikolin.si
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-090-c08-miniminimalistic-com
   name: LITTLE DUTCH -Soft activity cube - Forest Friends
   url: https://www.miniminimalistic.com/product-page/soft-activity-cube-little-farm
@@ -4828,6 +5122,7 @@ products:
   role: competitor
   shop: kinderfeestwinkel.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-091-c02-daytripsociety-com
   name: Maileg Duck w/ Bow - Sand
   url: https://www.daytripsociety.com/maileg-duck-w-bow-sand.html
@@ -4858,6 +5153,7 @@ products:
   role: competitor
   shop: babykochs.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-092-c04-kids-world-com
   name: Liewood Mand - Fleece - Ib Rabbit - Mist
   url: https://www.kids-world.com/nl-nl/liewood-mand-fleece-ib-rabbit-mist-p-457294.html
@@ -4879,6 +5175,7 @@ products:
   role: competitor
   shop: internet-speelgoedwinkel.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-093-c02-littlefred-de
   name: Little Dutch - Geschenkset Holz Fairy Garden
   url: https://littlefred.de/produkt/little-dutch-geschenkset-holz-fairy-garden/
@@ -4886,6 +5183,7 @@ products:
   role: competitor
   shop: littlefred.de
   match: Azonos EAN
+  currency: EUR
 - id: kd-093-c03-pippaloentje-nl
   name: Giftset hout Fairy Garden I Little Dutch - Pippaloentje
   url: https://www.pippaloentje.nl/product/giftset-hout-fairy-garden-little-dutch/
@@ -4893,6 +5191,7 @@ products:
   role: competitor
   shop: pippaloentje.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-093-c04-speelgoedwinkel-nl
   name: Little Dutch Giftset hout - Fairy Garden FSC
   url: https://www.speelgoedwinkel.nl/product/little-dutch-giftset-hout-fairy-garden-fsc-62935.html
@@ -4900,6 +5199,7 @@ products:
   role: competitor
   shop: speelgoedwinkel.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-093-c05-baby-dump-nl
   name: Little Dutch Giftset Hout Fairy Garden
   url: https://www.baby-dump.nl/little-dutch-giftset-hout-fairy-garden.html
@@ -4907,6 +5207,7 @@ products:
   role: competitor
   shop: baby-dump.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-093-c06-babystrefpunt-nl
   name: Little Dutch giftset hout Fairy Garden
   url: https://www.babystrefpunt.nl/site/product/little-dutch-giftset-hout-fairy-garden/
@@ -4914,6 +5215,7 @@ products:
   role: competitor
   shop: babystrefpunt.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-093-c07-barfusswunder-de
   name: Little Dutch Geschenkset Holz "Fairy Garden"
   url: https://www.barfusswunder.de/product-page/little-dutch-geschenkset-holz-fairy-garden
@@ -4921,6 +5223,7 @@ products:
   role: competitor
   shop: barfusswunder.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-093-c08-babyone-de
   name: Geschenkset Holz Fairy Garden
   url: https://www.babyone.de/baby-holzspielzeug/little-dutch/geschenkset-holz-fairy-garden/2000587377104.html
@@ -4928,6 +5231,7 @@ products:
   role: competitor
   shop: babyone.de
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-094-c01-paradisio-online-be
   name: Gevulde fles & figuur, Glo Pals Sensory Play Jar
   url: https://www.paradisio-online.be/baby/play-jar-glo-pals-sensory-play-jar-sensory-play-light-up-cubes-characters-light-up-cubes-sesame-street/p-1538202
@@ -4935,6 +5239,7 @@ products:
   role: competitor
   shop: paradisio-online.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-094-c02-babycare-nl
   name: Glo Pals Frosty Blue Sensory Jar  Frosty blue
   url: https://www.babycare.nl/en/glo-pals-frosty-blue-sensory-jar-frosty-blue.html
@@ -4942,6 +5247,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-094-c03-kids-world-com
   name: Glo Pals Sensory Jar w. Light - Frosty Blue
   url: https://www.kids-world.com/en-us/glo-pals-sensory-jar-light-frosty-blue-p-417327.html
@@ -4956,6 +5262,7 @@ products:
   role: competitor
   shop: babylux.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-094-c05-minifem-nl
   name: Glo Pals Sensory Jar Frosty Blauw
   url: https://minifem.nl/product/glo-pals-sensory-jar-frosty-blauw/
@@ -4963,6 +5270,7 @@ products:
   role: competitor
   shop: minifem.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-094-c06-glopals-com
   name: Sensory Play Jar®
   url: https://glopals.com/products/sensoryplayjar
@@ -4991,6 +5299,7 @@ products:
   role: competitor
   shop: kollekt.be
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-094-c10-thehappylark-com
   name: Glo Pals-Mini Sensory Play Jar Gift Set Pink
   url: https://www.thehappylark.com/products/glo-pals-mini-sensory-play-jar-gift-set-pink
@@ -5020,6 +5329,7 @@ products:
   role: competitor
   shop: pippaloentje.nl
   match: Azonos EAN
+  currency: EUR
 - id: kd-097-c02-bol-com
   name: Little Dutch Safari Friends Knuffeldoekje Leeuw
   url: https://www.bol.com/nl/nl/p/little-dutch-knuffeldoekje-leeuw-safari-friends/9300000258916493/
@@ -5041,6 +5351,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-097-c05-lebaby-nl
   name: Little Dutch Safari Friends Knuffeldoekje Leeuw
   url: https://lebaby.nl/nl-nl/producten/little-dutch-safari-friends-knuffeldoekje-leeuw-xnbgjc43qz
@@ -5048,6 +5359,7 @@ products:
   role: competitor
   shop: lebaby.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-097-c06-speelgoedwinkel-nl
   name: Little Dutch Safari Friends Knuffeldoekje Leeuw
   url: https://www.speelgoedwinkel.nl/product/little-dutch-safari-friends-knuffeldoekje-leeuw-385922.html
@@ -5055,6 +5367,7 @@ products:
   role: competitor
   shop: speelgoedwinkel.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-097-c07-twiskbv-nl
   name: Little Dutch knuffeldoekje leeuw LD8328
   url: https://twiskbv.nl/speelgoed/little-dutch/safari-friends/little-dutch-knuffeldoekje-leeuw-ld8328.html
@@ -5062,6 +5375,7 @@ products:
   role: competitor
   shop: twiskbv.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-097-c08-kongessloejd-com
   name: Knuffeldoek - dragon
   url: https://kongessloejd.nl/products/ks107406-sleepy-animals-teddy-bears-dragon
@@ -5069,6 +5383,7 @@ products:
   role: competitor
   shop: kongessloejd.com
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-098-c01-dekinderplaneet-be
   name: Little Dutch Safari Friends Activiteitenspiraal
   url: https://www.dekinderplaneet.be/nl/little-dutch-safari-friends-activiteitenspiraal-1074464
@@ -5076,6 +5391,7 @@ products:
   role: competitor
   shop: dekinderplaneet.be
   match: Azonos EAN
+  currency: EUR
 - id: kd-098-c02-babypark-nl
   name: Little Dutch Safari Friends Activiteitenspiraal
   url: https://www.babypark.nl/little-dutch-safari-friends-activiteitenspiraal.html
@@ -5083,6 +5399,7 @@ products:
   role: competitor
   shop: babypark.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-098-c03-babycare-nl
   name: Little Dutch Activity Spiral - Safari Friends
   url: https://www.babycare.nl/en/little-dutch-activity-spiral-safari-friends.html
@@ -5090,6 +5407,7 @@ products:
   role: competitor
   shop: babycare.nl
   match: Erős névegyezés; EAN nem igazolt
+  currency: EUR
 - id: kd-098-c04-atalanda-com
   name: Aktivitätsspirale Löwe Safari Friends
   url: https://atalanda.com/products/aktivitaetsspirale-loewe-safari-friends-7d4cc9
@@ -5104,6 +5422,7 @@ products:
   role: competitor
   shop: leuk-erbijvanelles.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-099-c02-bijbroerenzus-nl
   name: Maileg Miniature grocery box
   url: https://www.bijbroerenzus.nl/grocery-box-maileg.html
@@ -5111,6 +5430,7 @@ products:
   role: competitor
   shop: bijbroerenzus.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-099-c03-twinkelenster-com
   name: Maileg miniature grocery box
   url: https://www.twinkelenster.com/maileg-miniature-grocery-box.html
@@ -5132,6 +5452,7 @@ products:
   role: competitor
   shop: hobby-koopjes.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-100-c02-zoubisoukids-nl
   name: Pixelhobby - Pixel set Eenhoorn
   url: https://zoubisoukids.nl/product/pixelhobby-pixel-set-eenhoorn/
@@ -5139,6 +5460,7 @@ products:
   role: competitor
   shop: zoubisoukids.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-100-c03-wonderzolder-nl
   name: Pixelhobby Sleutelhanger set - Sweet
   url: https://www.wonderzolder.nl/product/pixelhobby-sleutelhanger-set-sweet/
@@ -5146,6 +5468,7 @@ products:
   role: competitor
   shop: wonderzolder.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-100-c04-artenhobby-nl
   name: PixelHobby Pixel Set Vredesduif
   url: https://www.artenhobby.nl/pixel-set-vredesduif.html
@@ -5153,6 +5476,7 @@ products:
   role: competitor
   shop: artenhobby.nl
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-100-c05-bol-com
   name: Pixelhobby XL set Eenhoorn 41042
   url: https://www.bol.com/nl/nl/p/pixelhobby-xl-set-eenhoorn-41042/9300000173446999/
@@ -5182,6 +5506,7 @@ products:
   role: competitor
   shop: kleinekolibri.be
   match: Hasonló funkció / változat
+  currency: EUR
 - id: kd-100-c09-imusic-com
   name: Pixel Medaillon Set Mädchen
   url: https://imusic.com/merchandise/8718468120131/p-2023-pixel-medaillon-set-madchen-toys

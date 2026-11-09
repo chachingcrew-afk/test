@@ -13,7 +13,7 @@ on:
   workflow_dispatch:         # "Run workflow" button: checks every product right away
   push:                      # editing the product list checks every product right away
     branches: [main]
-    paths: ["config/products.yaml"]
+    paths: ["config/**"]
 
 permissions:
   contents: write            # to commit data/prices.csv
@@ -25,7 +25,7 @@ concurrency:
 jobs:
   track:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 150
     env:
       SCHEDULE: ${{ github.event.schedule }}
       PROXY_URL: ${{ secrets.PROXY_URL }}

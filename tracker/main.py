@@ -14,17 +14,21 @@ import random
 import sys
 import time
 import uuid
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 import yaml
 
-from .extractors import Context, extract_price
+from .extractors import Context, extract_rendered, extract_static, needs_browser
 from .fetcher import BrowserRenderer, Fetcher
 from .storage import PriceRecord, build_storage
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "config" / "products.yaml"
+EXTRA_CONFIG_DIR = ROOT / "config" / "products"   # more product lists, e.g. generated from Excel
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "track-prices.yml"
 
 DEFAULT_SETTINGS = {
@@ -34,16 +38,22 @@ DEFAULT_SETTINGS = {
     "default_currency": None,
     "delay_seconds": [2, 5],
     "timeout_seconds": 30,
+    "concurrency": 8,          # webshops checked in parallel (one shop is always sequential)
+    "browser_max": 300,        # cap on headless browser renders per run
 }
 
 log = logging.getLogger("tracker")
 
 
 # ------------------------------------------------------------------ config
-def load_config(path: Path = CONFIG_PATH) -> tuple[dict, list[dict]]:
+def load_config(path: Path = CONFIG_PATH, extra_dir: Path = EXTRA_CONFIG_DIR) -> tuple[dict, list[dict]]:
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     settings = {**DEFAULT_SETTINGS, **(data.get("settings") or {})}
-    products = [p for p in (data.get("products") or []) if p.get("enabled", True)]
+    raw = list(data.get("products") or [])
+    if extra_dir.is_dir():
+        for extra in sorted(extra_dir.glob("*.y*ml")):
+            raw.extend((yaml.safe_load(extra.read_text(encoding="utf-8")) or {}).get("products") or [])
+    products = [p for p in raw if p.get("enabled", True)]
     seen = set()
     for p in products:
         if not p.get("id") or not p.get("url"):
@@ -88,10 +98,7 @@ def due_products(settings: dict, products: list[dict], schedule: str | None) -> 
 
 
 # --------------------------------------------------------------------- run
-def check_product(product: dict, fetcher: Fetcher, renderer: BrowserRenderer | None,
-                  settings: dict, run_id: str) -> PriceRecord:
-    ctx = Context(url=product["url"], product=product, fetcher=fetcher)
-    result = extract_price(ctx, renderer)
+def make_record(product: dict, ctx: Context, result, settings: dict, run_id: str) -> PriceRecord:
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     base = dict(checked_at=now, run_id=run_id, product_id=product["id"],
                 product_name=product.get("name") or (result.title if result else "") or "",
@@ -101,8 +108,48 @@ def check_product(product: dict, fetcher: Fetcher, renderer: BrowserRenderer | N
         return PriceRecord(**base, status="ok", price=result.price.quantize(type(result.price)("0.01")),
                            currency=currency, in_stock=result.in_stock, method=result.method)
     status = "not_found" if ctx.not_found else "blocked" if ctx.blocked else "failed"
-    return PriceRecord(**base, status=status,
-                       error=" | ".join(ctx.attempts)[:2000])
+    return PriceRecord(**base, status=status, error=" | ".join(ctx.attempts)[:2000])
+
+
+def check_products(products: list[dict], fetcher: Fetcher, renderer: BrowserRenderer | None,
+                   settings: dict) -> list[tuple[dict, Context, object]]:
+    """Static pass in parallel (one thread per webshop, polite delay inside a shop),
+    then a sequential browser pass for whatever is still missing."""
+    by_shop: dict[str, list[int]] = defaultdict(list)
+    for i, p in enumerate(products):
+        by_shop[urlparse(p["url"]).netloc.lower().removeprefix("www.")].append(i)
+
+    contexts: list[Context] = [Context(url=p["url"], product=p, fetcher=fetcher) for p in products]
+    results: list = [None] * len(products)
+    done = [0]
+
+    def shop_worker(indexes: list[int]) -> None:
+        for n, i in enumerate(indexes):
+            if n:
+                time.sleep(random.uniform(*settings["delay_seconds"]))
+            try:
+                results[i] = extract_static(contexts[i])
+            except Exception as err:  # never lose the whole shop because of one page
+                contexts[i].attempts.append(f"crash: {type(err).__name__}: {err}")
+            done[0] += 1
+            if done[0] % 50 == 0:
+                log.info("progress: %d/%d", done[0], len(products))
+
+    workers = max(1, int(settings["concurrency"]))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        # biggest shops first so they do not end up as the long tail
+        for indexes in sorted(by_shop.values(), key=len, reverse=True):
+            pool.submit(shop_worker, indexes)
+
+    if renderer:
+        pending = [i for i in range(len(products)) if results[i] is None and needs_browser(contexts[i])]
+        pending = pending[: int(settings["browser_max"])]
+        if pending:
+            log.info("browser pass: %d pages", len(pending))
+        for i in pending:
+            results[i] = extract_rendered(contexts[i], renderer)
+
+    return [(products[i], contexts[i], results[i]) for i in range(len(products))]
 
 
 def write_summary(records: list[PriceRecord], proxy_bytes: int) -> None:
@@ -140,21 +187,19 @@ def cmd_run(args) -> int:
     fetcher = Fetcher(proxy_url, timeout=settings["timeout_seconds"])
     renderer = BrowserRenderer(proxy_url) if settings["render_fallback"] else None
     run_id = uuid.uuid4().hex[:12]
-    records: list[PriceRecord] = []
 
     try:
-        for i, product in enumerate(products):
-            if i:
-                time.sleep(random.uniform(*settings["delay_seconds"]))
-            record = check_product(product, fetcher, renderer, settings, run_id)
-            records.append(record)
-            if record.status == "ok":
-                log.info("%-30s %s %s via %s", product["id"], record.price, record.currency or "", record.method)
-            else:
-                log.warning("%-30s %s: %s", product["id"], record.status, record.error)
+        checked = check_products(products, fetcher, renderer, settings)
     finally:
         if renderer:
             renderer.close()
+
+    records = [make_record(p, ctx, result, settings, run_id) for p, ctx, result in checked]
+    for r in records:
+        if r.status == "ok":
+            log.info("%-40s %s %s via %s", r.product_id, r.price, r.currency or "", r.method)
+        else:
+            log.warning("%-40s %s: %s", r.product_id, r.status, (r.error or "")[:300])
 
     write_summary(records, fetcher.bytes_via_proxy)
     if not args.dry_run:

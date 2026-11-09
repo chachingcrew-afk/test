@@ -393,6 +393,19 @@ def _run_html_strategies(ctx: Context) -> PriceResult | None:
 
 
 def extract_price(ctx: Context, renderer: BrowserRenderer | None) -> PriceResult | None:
+    """Full chain: static methods first, the browser only if they all fail."""
+    result = extract_static(ctx)
+    if result or ctx.not_found:
+        return result
+    return extract_rendered(ctx, renderer)
+
+
+def needs_browser(ctx: Context) -> bool:
+    return not ctx.not_found and bool(ctx.product.get("render", True))
+
+
+def extract_static(ctx: Context) -> PriceResult | None:
+    """Steps 1-3: APIs and plain HTML. Thread safe, no browser."""
     forced = ctx.product.get("platform")
     tried: set[str] = set()
 
@@ -431,8 +444,12 @@ def extract_price(ctx: Context, renderer: BrowserRenderer | None) -> PriceResult
         if result:
             return result
 
-    # 3) headless browser for JavaScript rendered pages
-    if renderer and ctx.product.get("render", True):
+    return None
+
+
+def extract_rendered(ctx: Context, renderer: BrowserRenderer | None) -> PriceResult | None:
+    """Step 4: headless browser for JavaScript rendered pages. Not thread safe."""
+    if renderer and needs_browser(ctx):
         use_proxy = ctx.fetcher.should_proxy(ctx.url, ctx.proxy_mode) or (ctx.blocked and ctx.proxy_mode != "never"
                                                                           and bool(ctx.fetcher.proxy_url))
         try:

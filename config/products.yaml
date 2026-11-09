@@ -23,15 +23,18 @@ settings:
 products:
   # ---- demo products, replace them with your own ----
   - id: demo-allbirds-tree-runner
+    enabled: false
     name: Allbirds Men's Tree Runner (Shopify)
     url: https://www.allbirds.com/products/mens-tree-runners
     currency: USD
 
   - id: demo-coolblue-airfryer
+    enabled: false
     name: Philips Airfryer XXL NA342/00 (Coolblue)
     url: https://www.coolblue.nl/en/product/954609/philips-airfryer-xxl-3000-series-na342-00.html
 
   - id: demo-woolworths-coffee
+    enabled: false
     name: WCafe Italian Blend 1kg (Woolworths ZA)
     url: https://www.woolworths.co.za/prod/Food/Promotions/MyDifference-Favourites/WCafe-Italian-Blend-Coffee-Beans-1-kg/_/A-6009189862465
 

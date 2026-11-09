@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import logging
 import random
+import threading
 import time
 from dataclasses import dataclass
 from urllib.parse import urlparse
@@ -67,7 +68,8 @@ class Fetcher:
         self.timeout = timeout
         self.retries = retries
         self.impersonate = impersonate
-        self.session = cffi_requests.Session(impersonate=impersonate)
+        self._local = threading.local()   # one curl session per worker thread
+        self._lock = threading.Lock()
         self._proxy_domains: set[str] = set()
         self.bytes_via_proxy = 0
 
@@ -104,6 +106,12 @@ class Fetcher:
     def mark_blocked(self, url: str) -> None:
         self._proxy_domains.add(urlparse(url).netloc)
 
+    @property
+    def session(self):
+        if not hasattr(self._local, "session"):
+            self._local.session = cffi_requests.Session(impersonate=self.impersonate)
+        return self._local.session
+
     # ----------------------------------------------------------------- private
     def _get_with_retries(self, url: str, *, use_proxy: bool, accept: str | None) -> FetchResponse:
         if use_proxy and not self.proxy_url:
@@ -137,7 +145,8 @@ class Fetcher:
 
         text = resp.text or ""
         if use_proxy:
-            self.bytes_via_proxy += len(resp.content or b"")
+            with self._lock:
+                self.bytes_via_proxy += len(resp.content or b"")
         if looks_blocked(resp.status_code, text):
             raise FetchError(f"blocked (HTTP {resp.status_code})", blocked=True, status=resp.status_code)
         if resp.status_code >= 400:

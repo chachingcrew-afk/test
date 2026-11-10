@@ -80,26 +80,88 @@ def _availability(value) -> bool | None:
 # Platform APIs
 # =========================================================================
 
+def _shopify_candidates(ctx: Context) -> list[str]:
+    """The link from the Excel is not always the product's own URL (locale prefix,
+    collection path, redirect). Try the link, the page's canonical URL and the bare handle."""
+    urls = [_strip_url(ctx.url)]
+    if ctx.soup is not None:
+        canon = ctx.soup.find("link", rel="canonical")
+        if canon and canon.get("href"):
+            urls.append(_strip_url(canon["href"]))
+    parts = [s for s in urlparse(ctx.url).path.split("/") if s]
+    if "products" in parts and parts.index("products") + 1 < len(parts):
+        urls.append(f"{_origin(ctx.url)}/products/{parts[parts.index('products') + 1]}")
+    seen, out = set(), []
+    for u in urls:
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
+
+
+def _shopify_currency(ctx: Context) -> str | None:
+    currency = ctx.product.get("currency")
+    if currency:
+        return currency
+    if ctx.html:
+        m = re.search(r'Shopify\.currency\s*=\s*\{"active":"([A-Z]{3})"', ctx.html) or \
+            re.search(r'ShopifyAnalytics\.meta\.currency\s*=\s*[\'"]([A-Z]{3})', ctx.html)
+        if m:
+            return m.group(1)
+    try:
+        return ctx.get_json(_origin(ctx.url) + "/cart.js").get("currency")
+    except (FetchError, ValueError):
+        return None
+
+
+def _pick_variant(ctx: Context, variants: list[dict]) -> dict:
+    wanted = parse_qs(urlparse(ctx.url).query).get("variant", [None])[0]
+    return next((v for v in variants if str(v.get("id")) == str(wanted)), None) or \
+        next((v for v in variants if v.get("available")), variants[0])
+
+
 def shopify_api(ctx: Context) -> PriceResult | None:
     """Every Shopify store serves /products/<handle>.js (prices in cents)."""
-    data = ctx.get_json(_strip_url(ctx.url) + ".js")
+    data, last_err = None, None
+    for url in _shopify_candidates(ctx):
+        try:
+            data = ctx.get_json(url + ".js")
+            break
+        except FetchError as err:
+            last_err = err
+            if err.blocked:
+                raise
+    if data is None:
+        if last_err:
+            raise last_err
+        return None
     variants = data.get("variants") or []
     if not variants:
         return None
-    wanted = parse_qs(urlparse(ctx.url).query).get("variant", [None])[0]
-    variant = next((v for v in variants if str(v.get("id")) == str(wanted)), None) or \
-        next((v for v in variants if v.get("available")), variants[0])
+    variant = _pick_variant(ctx, variants)
     price = parse_price(variant.get("price"))
     if price is None:
         return None
-    currency = ctx.product.get("currency")
-    if not currency:
-        try:
-            currency = ctx.get_json(_origin(ctx.url) + "/cart.js").get("currency")
-        except (FetchError, ValueError):
-            currency = None
-    return PriceResult(price=price / 100, currency=normalize_currency(currency),
+    return PriceResult(price=price / 100, currency=normalize_currency(_shopify_currency(ctx)),
                        in_stock=variant.get("available"), title=data.get("title"))
+
+
+def shopify_meta(ctx: Context) -> PriceResult | None:
+    """Every Shopify theme prints `var meta = {"product": {...}}` for analytics (prices in cents)."""
+    idx = ctx.html.find("var meta = ")
+    if idx < 0:
+        return None
+    try:
+        meta, _ = json.JSONDecoder().raw_decode(ctx.html, idx + len("var meta = "))
+    except ValueError:
+        return None
+    variants = ((meta or {}).get("product") or {}).get("variants") or []
+    if not variants:
+        return None
+    price = parse_price(_pick_variant(ctx, variants).get("price"))
+    if price is None:
+        return None
+    return PriceResult(price=price / 100, currency=normalize_currency(_shopify_currency(ctx)))
 
 
 def woocommerce_api(ctx: Context) -> PriceResult | None:
@@ -351,6 +413,7 @@ def nextjs_data(ctx: Context) -> PriceResult | None:
 HTML_STRATEGIES: list[tuple[str, Callable[[Context], PriceResult | None]]] = [
     ("css_selector", css_selector),
     ("jsonld", jsonld),
+    ("shopify_meta", shopify_meta),
     ("meta_tags", meta_tags),
     ("microdata", microdata),
     ("magento_markup", magento_markup),
@@ -435,7 +498,8 @@ def extract_static(ctx: Context) -> PriceResult | None:
         if platform:
             ctx.attempts.append(f"platform: {platform}")
         for s in API_STRATEGIES:
-            if s.platform == platform and s.name not in tried:
+            # Shopify gets a second go: the HTML gives us the canonical product URL
+            if s.platform == platform and (s.name not in tried or s.name == "shopify_api"):
                 tried.add(s.name)
                 result = _run(ctx, s.name, s.fn)
                 if result:

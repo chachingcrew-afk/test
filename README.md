@@ -63,10 +63,21 @@ python -m tracker.main run                                  # minden termék
 python -m pytest -q                                         # tesztek
 ```
 
+## Webshoponkénti szabályok
+
+A `config/shops.yaml`-ban egy bolthoz egyszer kell megadni, hol van az ár az oldalon (vagy a pénznemet, platformot), és az a bolt összes termékére érvényes, aldomainekkel együtt. A termék saját beállítása erősebb.
+
+```yaml
+shops:
+  example-shop.nl:
+    selector: ".product-info .price-current"
+    currency: EUR
+```
+
 ## Ha egy oldalon nem találja az árat
 
 1. Nézd meg a CSV `error` oszlopát: `blocked` státusz esetén proxy kérdés, `failed` esetén a kinyerés nem sikerült, `not_found` esetén a termékoldal megszűnt (404), cseréld az URL-t.
-2. Adj meg egy `selector`-t a termékhez (böngészőben jobb klikk az áron → Inspect → egyedi class).
+2. Adj meg egy `selector`-t a bolthoz a `config/shops.yaml`-ban (böngészőben jobb klikk az áron → Inspect → egyedi class).
 3. Ha tudod a platformot, add meg: `platform: shopify`.
 
 ## Fontos tudnivalók

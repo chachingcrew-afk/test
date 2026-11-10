@@ -29,6 +29,7 @@ from .storage import PriceRecord, build_storage
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "config" / "products.yaml"
 EXTRA_CONFIG_DIR = ROOT / "config" / "products"   # more product lists, e.g. generated from Excel
+SHOPS_PATH = ROOT / "config" / "shops.yaml"       # per-webshop rules (selector, currency, ...)
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "track-prices.yml"
 
 DEFAULT_SETTINGS = {
@@ -46,13 +47,39 @@ log = logging.getLogger("tracker")
 
 
 # ------------------------------------------------------------------ config
-def load_config(path: Path = CONFIG_PATH, extra_dir: Path = EXTRA_CONFIG_DIR) -> tuple[dict, list[dict]]:
+def shop_key(url: str) -> str:
+    return urlparse(url).netloc.lower().removeprefix("www.")
+
+
+def load_shop_rules(path: Path = SHOPS_PATH) -> dict[str, dict]:
+    if not path.exists():
+        return {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return {k.lower().removeprefix("www."): (v or {}) for k, v in (data.get("shops") or {}).items()}
+
+
+def rule_for(url: str, rules: dict[str, dict]) -> dict:
+    """Exact domain first, then parent domains (nl.shop.com -> shop.com)."""
+    host = shop_key(url)
+    parts = host.split(".")
+    for i in range(len(parts) - 1):
+        rule = rules.get(".".join(parts[i:]))
+        if rule is not None:
+            return rule
+    return {}
+
+
+def load_config(path: Path = CONFIG_PATH, extra_dir: Path = EXTRA_CONFIG_DIR,
+                shops_path: Path = SHOPS_PATH) -> tuple[dict, list[dict]]:
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     settings = {**DEFAULT_SETTINGS, **(data.get("settings") or {})}
     raw = list(data.get("products") or [])
     if extra_dir.is_dir():
         for extra in sorted(extra_dir.glob("*.y*ml")):
             raw.extend((yaml.safe_load(extra.read_text(encoding="utf-8")) or {}).get("products") or [])
+    rules = load_shop_rules(shops_path)
+    # the product's own fields win over the shop rule, the shop rule wins over global settings
+    raw = [{**rule_for(p["url"], rules), **p} if p.get("url") else p for p in raw]
     products = [p for p in raw if p.get("enabled", True)]
     seen = set()
     for p in products:
@@ -117,7 +144,7 @@ def check_products(products: list[dict], fetcher: Fetcher, renderer: BrowserRend
     then a sequential browser pass for whatever is still missing."""
     by_shop: dict[str, list[int]] = defaultdict(list)
     for i, p in enumerate(products):
-        by_shop[urlparse(p["url"]).netloc.lower().removeprefix("www.")].append(i)
+        by_shop[shop_key(p["url"])].append(i)
 
     contexts: list[Context] = [Context(url=p["url"], product=p, fetcher=fetcher) for p in products]
     results: list = [None] * len(products)

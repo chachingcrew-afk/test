@@ -1,0 +1,11 @@
+# Per-webshop rules. They apply to every product of that shop (subdomains included),
+# so one line fixes a whole shop. A product's own fields still win.
+#
+# Possible fields: selector, currency, platform, proxy_mode, render, enabled
+#
+# Example:
+#   example-shop.nl:
+#     selector: ".product-info .price-current"
+#     currency: EUR
+
+shops: {}

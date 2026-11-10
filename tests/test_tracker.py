@@ -214,3 +214,41 @@ def test_csv_roundtrip(tmp_path):
     assert len(rows) == 2
     back = from_csv_row(rows[0])
     assert back.price == Decimal("12.50") and back.in_stock is True and back.used_proxy is False
+
+
+# ------------------------------------------------------- shopify fallbacks
+def test_shopify_meta_when_js_endpoint_404s():
+    url = "https://s.example/en/products/lamp"
+    html = ('<link rel="canonical" href="https://s.example/products/lamp-2">'
+            '<script>Shopify.currency = {"active":"EUR","rate":"1.0"};'
+            'var meta = {"product":{"variants":[{"id":7,"price":3495}]}};</script>'
+            '<link href="https://cdn.shopify.com/x.css">')
+    # neither .js variant exists, so the analytics meta in the HTML is the source
+    result, _ = run(url, {url: html})
+    assert result.price == Decimal("34.95") and result.currency == "EUR" and result.method == "shopify_meta"
+
+
+def test_shopify_api_uses_canonical_url():
+    url = "https://s.example/collections/all/products/old-handle"
+    html = '<link rel="canonical" href="https://s.example/products/new-handle"><link href="https://cdn.shopify.com/a.css">'
+    routes = {url: html,
+              "https://s.example/products/new-handle.js": {"variants": [{"id": 1, "price": 1000, "available": True}]},
+              "https://s.example/cart.js": {"currency": "EUR"}}
+    result, _ = run(url, routes)
+    assert result.price == Decimal("10") and result.method == "shopify_api"
+
+
+# --------------------------------------------------------------- shop rules
+def test_shop_rules_apply_to_subdomains_and_product_wins(tmp_path):
+    from tracker.main import load_config
+    (tmp_path / "products.yaml").write_text(
+        "products:\n"
+        "  - {id: a, url: 'https://nl.shop.example/p/1'}\n"
+        "  - {id: b, url: 'https://www.shop.example/p/2', selector: '.own'}\n"
+        "  - {id: c, url: 'https://other.example/p/3'}\n")
+    (tmp_path / "shops.yaml").write_text("shops:\n  shop.example: {selector: '.price', currency: SEK}\n")
+    _, products = load_config(tmp_path / "products.yaml", tmp_path / "none", tmp_path / "shops.yaml")
+    by_id = {p["id"]: p for p in products}
+    assert by_id["a"]["selector"] == ".price" and by_id["a"]["currency"] == "SEK"
+    assert by_id["b"]["selector"] == ".own" and by_id["b"]["currency"] == "SEK"
+    assert "selector" not in by_id["c"]

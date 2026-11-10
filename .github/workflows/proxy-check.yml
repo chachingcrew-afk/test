@@ -1,0 +1,56 @@
+name: Proxy check
+
+# Manual check that the PROXY_URL secret works: shows the outgoing IP and country
+# without the proxy and through it. Never prints the secret itself.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PROXY_URL: ${{ secrets.PROXY_URL }}
+    steps:
+      - name: Check proxy
+        run: |
+          if [ -z "$PROXY_URL" ]; then
+            echo "::error::The PROXY_URL secret is missing or empty"
+            exit 1
+          fi
+          case "$PROXY_URL" in
+            http://*|https://*|socks5://*) echo "Format: OK (starts with a scheme)" ;;
+            *) echo "::error::PROXY_URL must start with http:// (copy it from the HTTP tab)"; exit 1 ;;
+          esac
+
+          show() {
+            python3 -c 'import json,sys
+          try:
+              d = json.load(sys.stdin)
+              print(f"IP={d.get(\"ip\")}  country={d.get(\"country\")}  city={d.get(\"city\")}  network={d.get(\"org\")}")
+          except Exception:
+              print("no valid answer")'
+          }
+
+          echo "Without proxy (GitHub server):"
+          curl -s --max-time 20 https://ipinfo.io/json | show
+
+          ok=0
+          for i in 1 2 3; do
+            echo "Through proxy, request $i:"
+            if out=$(curl -s --fail --max-time 30 --proxy "$PROXY_URL" https://ipinfo.io/json); then
+              echo "$out" | show
+              ok=$((ok + 1))
+            else
+              echo "failed (curl exit $?)"
+            fi
+          done
+
+          if [ "$ok" -eq 0 ]; then
+            echo "::error::No request got through the proxy. Check the username, password and port."
+            exit 1
+          fi
+          echo "Proxy works: $ok/3 requests went through."

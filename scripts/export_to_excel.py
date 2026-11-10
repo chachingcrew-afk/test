@@ -1,6 +1,9 @@
 """Write the latest tracked prices back into the KidsDeco competitor Excel.
 
-    python scripts/export_to_excel.py INPUT.xlsx data/prices.csv OUTPUT.xlsx
+    python scripts/export_to_excel.py INPUT.xlsx data/prices.csv OUTPUT.xlsx [--ean-only]
+
+--ean-only first removes every competitor row that is not a same-EAN match, and
+every KidsDeco product left without such a competitor.
 
 Adds price columns to both sheets (keeping the existing tables, styles and formulas):
 - Versenytárstalálatok: competitor price, currency, stock, fetch status, method,
@@ -16,10 +19,11 @@ from datetime import datetime
 from pathlib import Path
 
 import openpyxl
+from openpyxl.formula.translate import Translator
 from openpyxl.worksheet.table import TableColumn
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from import_excel import COMPETITOR_SHEET, OWN_SHEET, cell_url, header_index, slug  # noqa: E402
+from import_excel import COMPETITOR_SHEET, EAN_MATCH, OWN_SHEET, cell_url, header_index, slug  # noqa: E402
 
 STATUS_HU = {"ok": "OK", "blocked": "Blokkolva", "not_found": "Nem található (404)", "failed": "Nem találta az árat"}
 OWN = f"'{OWN_SHEET}'"
@@ -71,11 +75,61 @@ def stock_hu(value: str) -> str:
     return {"True": "Igen", "False": "Nem"}.get(value, "")
 
 
+def compact_rows(ws, first: int, keep) -> int:
+    """Keep only the data rows (from `first`) for which keep(row_index) is true, moving
+    them up with values, styles, hyperlinks and formulas intact. Returns the new last row."""
+    last = max((r for r in range(first, ws.max_row + 1) if ws.cell(r, 1).value is not None), default=first - 1)
+    kept = [r for r in range(first, last + 1) if ws.cell(r, 1).value is not None and keep(r)]
+    for target, source in enumerate(kept, start=first):
+        if target == source:
+            continue
+        for c in range(1, ws.max_column + 1):
+            src, dst = ws.cell(source, c), ws.cell(target, c)
+            value = src.value
+            if isinstance(value, str) and value.startswith("="):
+                value = Translator(value, origin=src.coordinate).translate_formula(dst.coordinate)
+            dst.value = value
+            dst._style = copy(src._style)
+            dst.hyperlink = src.hyperlink.target if src.hyperlink else None
+        if ws.row_dimensions[source].height:
+            ws.row_dimensions[target].height = ws.row_dimensions[source].height
+    new_last = first + len(kept) - 1
+    if last > new_last:
+        ws.delete_rows(new_last + 1, last - new_last)
+    return new_last
+
+
+def filter_ean_only(wb) -> tuple[int, int]:
+    comp = wb[COMPETITOR_SHEET]
+    c_hdr, c_col = header_index(comp, None)
+    ids = {comp.cell(r, 1).value for r in range(c_hdr + 1, comp.max_row + 1)
+           if comp.cell(r, c_col["Egyezés minősége"] + 1).value == EAN_MATCH}
+    c_last = compact_rows(comp, c_hdr + 1, lambda r: comp.cell(r, c_col["Egyezés minősége"] + 1).value == EAN_MATCH)
+
+    own = wb[OWN_SHEET]
+    o_hdr, _ = header_index(own, None)
+    o_last = compact_rows(own, o_hdr + 1, lambda r: own.cell(r, 1).value in ids)
+
+    # header summary of the own sheet points at the product rows
+    first, n_own, n_comp = o_hdr + 1, o_last - o_hdr, c_last - c_hdr
+    own["B4"] = n_own
+    for cell, col in (("E4", "H"), ("H4", "J"), ("K4", "I")):
+        if isinstance(own[cell].value, str) and own[cell].value.startswith("=SUM("):
+            own[cell] = f"=SUM({col}{first}:{col}{o_last})"
+    comp["A3"] = (f"Szűrt nézet: csak az azonos EAN-os találatok. {n_own} KidsDeco-termék, {n_comp} találat. "
+                  "Ellenőrzés: 2026-11-09.")
+    return n_own, n_comp
+
+
 def main() -> None:
-    src, prices_csv, out = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    src, prices_csv, out = Path(args[0]), Path(args[1]), Path(args[2])
     latest = latest_by_product(prices_csv)
     wb = openpyxl.load_workbook(src)
     L = openpyxl.utils.get_column_letter
+    if "--ean-only" in sys.argv:
+        n_own, n_comp = filter_ean_only(wb)
+        print(f"kept {n_own} KidsDeco products and {n_comp} same-EAN competitor rows")
 
     # ---------------------------------------------------------- competitors
     ws = wb[COMPETITOR_SHEET]

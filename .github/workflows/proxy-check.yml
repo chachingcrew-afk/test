@@ -27,16 +27,11 @@ jobs:
           esac
 
           show() {
-            python3 -c 'import json,sys
-          try:
-              d = json.load(sys.stdin)
-              print(f"IP={d.get(\"ip\")}  country={d.get(\"country\")}  city={d.get(\"city\")}  network={d.get(\"org\")}")
-          except Exception:
-              print("no valid answer")'
+            jq -r '"IP=\(.ip)  country=\(.country)  city=\(.city)  network=\(.org)"' 2>/dev/null || echo "no valid answer"
           }
 
           echo "Without proxy (GitHub server):"
-          curl -s --max-time 20 https://ipinfo.io/json | show
+          curl -s --max-time 20 https://ipinfo.io/json | show || true
 
           ok=0
           for i in 1 2 3; do

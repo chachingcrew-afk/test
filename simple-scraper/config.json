@@ -20,6 +20,7 @@
     "delay_min": 1.5,
     "delay_max": 4.0,
     "max_mb_per_run": 200,
-    "research_not_found_after_days": 14
+    "research_not_found_after_days": 14,
+    "max_minutes_per_run": 100
   }
 }

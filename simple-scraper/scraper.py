@@ -831,6 +831,36 @@ def save_to_supabase(supabase: Client, results: list[dict]):
 # ================================================================ main
 
 
+class Saver:
+    """Saves results and cache in batches, so a killed run loses at most one batch."""
+
+    def __init__(self, supabase, cache, every=10):
+        self.sb, self.cache, self.every = supabase, cache, every
+        self.pending, self.failed, self.saved = [], False, 0
+
+    def add(self, res):
+        self.pending.append(res)
+        if len(self.pending) >= self.every:
+            self.flush()
+
+    def flush(self):
+        try:
+            self.cache.flush()
+        except Exception as e:
+            print(f"HIBA a cache mentésnél: {e}")
+        if not self.pending:
+            return
+        rows, self.pending = self.pending, []
+        save_csv(rows)
+        if self.sb:
+            try:
+                save_to_supabase(self.sb, rows)
+            except Exception as e:
+                self.failed = True
+                print(f"HIBA a Supabase mentésnél: {e}")
+        self.saved += len(rows)
+
+
 def check_ip(session, expected_country=None):
     try:
         info = session.get("https://ipinfo.io/json", timeout=15).json()
@@ -860,6 +890,8 @@ def main():
     }
     delay_min, delay_max = float(s.get("delay_min", 1.5)), float(s.get("delay_max", 4.0))
     max_mb = float(s.get("max_mb_per_run", 0) or 0)
+    max_minutes = float(s.get("max_minutes_per_run", 100) or 0)
+    started = time.monotonic()
 
     products_file = Path(s.get("products_file", "products.xlsx"))
     products = load_products(products_file)
@@ -892,11 +924,15 @@ def main():
     if not competitors and not any(p.get("url") for p in products):
         sys.exit("HIBA: nincs 'competitors' munkalap (vagy minden versenytárs ki van kapcsolva).")
 
+    saver = Saver(supabase, cache)
     results, skipped = [], 0
     blocked = {}  # domain -> consecutive block count (403/429)
     for i, (product, comp) in enumerate(jobs, 1):
         if max_mb and TRAFFIC["bytes"] / 1_000_000 >= max_mb:
             print(f"Forgalmi limit elérve ({max_mb} MB), a futás itt megáll. A többi a következő futásban jön.")
+            break
+        if max_minutes and (time.monotonic() - started) / 60 >= max_minutes:
+            print(f"Időlimit elérve ({max_minutes:.0f} perc), a futás itt megáll. A többi a következő futásban jön.")
             break
         dom = comp["domain"] if comp else norm_domain(product["url"])
         if blocked.get(dom, 0) >= 3:
@@ -912,6 +948,7 @@ def main():
             skipped += 1
             continue
         results.append(res)
+        saver.add(res)
         err = str(res.get("error") or "")
         blocked[dom] = blocked.get(dom, 0) + 1 if ("403" in err or "429" in err) else 0
         if blocked[dom] == 3:
@@ -924,23 +961,12 @@ def main():
             print(f"{label} HIBA - {res['error']}")
         time.sleep(random.uniform(delay_min, delay_max))
 
-    try:
-        cache.flush()
-    except Exception as e:
-        print(f"HIBA a cache mentésnél: {e}")
+    saver.flush()
+    save_failed = saver.failed
 
     if not results:
         print(f"Nincs új eredmény ({skipped} kihagyva, mert nemrég kerestük és nem árulják).")
         return
-
-    save_csv(results)
-    save_failed = False
-    if supabase:
-        try:
-            save_to_supabase(supabase, results)
-        except Exception as e:
-            save_failed = True
-            print(f"HIBA a Supabase mentésnél: {e}")
 
     ok = sum(r["status"] == "ok" for r in results)
     nf = sum(r["status"] == "not_found" for r in results)

@@ -14,6 +14,10 @@ Naponta lefut a GitHub szerverein, minden kérés a Webshare rotating proxyn meg
 4. **products.xlsx** oszlopai: `name`, `ean`, `url`, opcionálisan `price_selector` és `currency`.
 5. **Teszt**: Actions > Price Scraper > Run workflow.
 
+## Holland IP
+
+A `config.json`-ban `"country": "nl"` van beállítva, így a script a Webshare usernevet `felhasználónév-nl-rotate` formában küldi: minden kérés más holland IP-ről megy ki. A log elején látszik a kimenő IP és az országa. Ha nem NL jön, ellenőrizd, hogy a Webshare proxy listádban van-e holland proxy. Más országhoz írd át a kódot (pl. `"de"`), vagy üresen hagyva bármelyik ország jöhet.
+
 ## Ár keresés sorrendje
 
 1. a saját `price_selector` (ha meg van adva; vesszővel több is lehet)

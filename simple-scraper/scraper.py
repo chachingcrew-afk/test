@@ -66,7 +66,11 @@ def get_proxies(config):
     if not user or not password:
         sys.exit("HIBA: a proxy be van kapcsolva, de nincs username/password (WEBSHARE_USER / WEBSHARE_PASS secret).")
 
-    # Webshare rotating endpoint: '-rotate' suffix = new IP per request
+    # Webshare username parameters: {username}-{country}-rotate
+    #   country: e.g. "nl" -> only Dutch IPs; "rotate" -> new IP per request
+    country = str(proxy_cfg.get("country") or "").strip().lower()
+    if country and f"-{country}" not in user:
+        user = f"{user}-{country}"
     if proxy_cfg.get("rotate", True) and not user.endswith("-rotate"):
         user = f"{user}-rotate"
     host = proxy_cfg.get("host", "p.webshare.io")
@@ -350,11 +354,20 @@ def save_to_supabase(supabase: Client, results: list[dict]):
 # ---------------------------------------------------------------- main
 
 
-def check_ip(session):
+def check_ip(session, expected_country=None):
+    """Logs the outgoing proxy IP and its country."""
     try:
-        print(f"Kimenő IP: {session.get('https://ipv4.webshare.io/', timeout=15).text.strip()}")
-    except Exception as e:
-        print(f"IP ellenőrzés sikertelen: {e}")
+        info = session.get("https://ipinfo.io/json", timeout=15).json()
+        ip, country = info.get("ip"), str(info.get("country", "")).lower()
+        print(f"Kimenő IP: {ip} (ország: {country.upper() or '?'})")
+        if expected_country and country and country != expected_country.lower():
+            print(f"FIGYELEM: a proxy nem {expected_country.upper()} IP-t adott, hanem {country.upper()}-t. "
+                  "Nézd meg a Webshare proxy listádban, van-e benne holland proxy.")
+    except Exception:
+        try:
+            print(f"Kimenő IP: {session.get('https://ipv4.webshare.io/', timeout=15).text.strip()}")
+        except Exception as e:
+            print(f"IP ellenőrzés sikertelen: {e}")
 
 
 def main():
@@ -378,7 +391,7 @@ def main():
     })
     if proxies:
         session.proxies.update(proxies)
-        check_ip(session)
+        check_ip(session, config.get("proxy", {}).get("country"))
 
     results = []
     print(f"[{datetime.now().isoformat()}] Scraping indult - {len(products)} termék")

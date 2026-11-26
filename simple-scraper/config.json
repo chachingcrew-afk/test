@@ -3,6 +3,8 @@
     "enabled": true,
     "host": "p.webshare.io",
     "port": 80,
+    "country": "nl",
+    "rotate": true,
     "username": "YOUR_WEBSHARE_USERNAME",
     "password": "YOUR_WEBSHARE_PASSWORD"
   },

@@ -65,7 +65,20 @@ def get_supabase_client(config) -> Client | None:
     if not url or not key:
         print("FIGYELEM: nincs Supabase URL/KEY, csak CSV mentés és helyi cache lesz.")
         return None
-    return create_client(url, key)
+    # format checks (values themselves are never printed)
+    problems = []
+    if not re.fullmatch(r"https://[a-z0-9]{20}\.supabase\.co/?", url):
+        problems.append("SUPABASE_URL formátuma nem 'https://<projekt-azonosító>.supabase.co' "
+                        "(ne a dashboard linkje legyen, és ne legyen a végén /rest/v1)")
+    if key.startswith("sb_publishable_"):
+        problems.append("SUPABASE_KEY a publishable kulcs, a Secret keys alatti sb_secret_... kulcs kell")
+    elif not (key.startswith("sb_secret_") or key.startswith("eyJ")):
+        problems.append("SUPABASE_KEY nem sb_secret_... (vagy legacy eyJ...) kezdetű")
+    if re.search(r"\s", url + key):
+        problems.append("a Supabase secretek egyikében szóköz vagy sortörés van")
+    if problems:
+        sys.exit("HIBA a Supabase beállításban:\n  - " + "\n  - ".join(problems))
+    return create_client(url.rstrip("/"), key)
 
 
 def get_proxies(config):
@@ -815,6 +828,14 @@ def check_ip(session, expected_country=None):
         print(f"Kimenő IP: {ip} (ország: {country.upper() or '?'})")
         if expected_country and country and country != expected_country.lower():
             print(f"FIGYELEM: a proxy nem {expected_country.upper()} IP-t adott, hanem {country.upper()}-t.")
+    except requests.exceptions.ProxyError as e:
+        if "407" in str(e):
+            sys.exit("HIBA: a Webshare elutasította a belépést (407 Proxy Authentication Required).\n"
+                     "  - WEBSHARE_USER / WEBSHARE_PASS a Rotating Residential csomag Proxy List oldaláról kell,\n"
+                     "    Rotating Proxy Endpoint + Username/Password módban\n"
+                     "  - ha több csomagod van, a residential csomag adatai kellenek (nem a régi ingyenesé)\n"
+                     "  - nézd meg, nincs-e a secret elején/végén szóköz")
+        sys.exit(f"HIBA: nem sikerült csatlakozni a proxyhoz: {e}")
     except Exception as e:
         print(f"IP ellenőrzés sikertelen: {e}")
 
@@ -835,7 +856,11 @@ def main():
     competitors = load_competitors(products_file)
     proxies = get_proxies(config)
     supabase = get_supabase_client(config)
-    cache = Cache(supabase)
+    try:
+        cache = Cache(supabase)
+    except Exception as e:
+        sys.exit(f"HIBA: nem sikerült kapcsolódni a Supabase-hez ({type(e).__name__}: {e}).\n"
+                 "  Ellenőrizd a SUPABASE_URL és SUPABASE_KEY secretet (price-tracker projekt).")
 
     session = requests.Session()
     session.headers.update({

@@ -882,7 +882,7 @@ SEARCH_TEMPLATES = [
     ("html", "https://{d}/zoeken/{q}/"),
 ]
 
-SKIP_PATH = ("/search", "/zoeken", "/cart", "/winkelwagen", "/account", "/login", "/inloggen",
+SKIP_PATH = ("/search", "/zoeken", "/catalogsearch", "/zoek", "/suche", "/recherche", "/cart", "/winkelwagen", "/account", "/login", "/inloggen",
              "/checkout", "/afrekenen", "/contact", "/blog", "/wishlist", "/verlanglijst",
              "/klantenservice", "/service", "/over-ons", "/about", "/pages/", "/policies/")
 
@@ -896,6 +896,15 @@ def _same_site(url, domain):
     return host == domain or host.endswith("." + domain)
 
 
+def is_search_url(url):
+    """A search or result listing, never a product page."""
+    p = urlparse(url)
+    path, q = p.path.lower(), p.query.lower()
+    if any(s in path for s in ("/search", "/zoeken", "/catalogsearch", "/zoek", "/suche", "/recherche")):
+        return True
+    return bool(re.search(r"(^|&)(q|s|query|search|keyword|zoekterm|term)=", q))
+
+
 def candidates_from_html(html, base_url, domain, product, by_ean):
     soup = BeautifulSoup(html, "lxml")
     for t in soup.select("header, nav, footer"):
@@ -903,7 +912,7 @@ def candidates_from_html(html, base_url, domain, product, by_ean):
     seen = {}
     for i, a in enumerate(soup.find_all("a", href=True)):
         href = urljoin(base_url, a["href"]).split("#")[0]
-        if not _same_site(href, domain):
+        if not _same_site(href, domain) or is_search_url(href):
             continue
         path = urlparse(href).path.lower()
         if path in ("", "/") or any(s in path for s in SKIP_PATH):
@@ -1130,6 +1139,56 @@ class Cache:
 # ================================================================ find + scrape
 
 
+FORM_SEARCH = {}    # domain -> discovered search template or None (once per run)
+
+
+def discover_search_form(session, domain, timeout):
+    """Read the search form on the shop's home page: its action URL and the text field name.
+    Returns a ("html", template) pair, or None."""
+    if domain in FORM_SEARCH:
+        return FORM_SEARCH[domain]
+    FORM_SEARCH[domain] = None
+    try:
+        resp = fetch(session, f"https://{domain}/", timeout, 1)
+    except Exception:
+        return None
+    soup = BeautifulSoup(resp.text, "lxml")
+    base = resp.url or f"https://{domain}/"
+    best = None
+    for form in soup.find_all("form"):
+        method = (form.get("method") or "get").lower()
+        if method != "get":
+            continue
+        fields = form.find_all("input")
+        text = [i for i in fields if (i.get("type") or "text").lower() in ("search", "text") and i.get("name")]
+        if not text:
+            continue
+        marker = " ".join([form.get("action") or "", form.get("id") or "", " ".join(form.get("class") or []),
+                           form.get("role") or ""] + [f"{i.get('name')} {i.get('placeholder') or ''}" for i in text]).lower()
+        score = sum(w in marker for w in ("search", "zoek", "query", "keyword", "suche", "recherche"))
+        if text[0].get("type", "").lower() == "search":
+            score += 2
+        if best is None or score > best[0]:
+            best = (score, form, text[0])
+    if not best or best[0] == 0:
+        return None
+    _, form, field = best
+    action = urljoin(base, form.get("action") or base)
+    if not _same_site(action, domain):
+        return None
+    p = urlparse(action)
+    hidden = [(i.get("name"), i.get("value") or "") for i in form.find_all("input")
+              if (i.get("type") or "").lower() == "hidden" and i.get("name")]
+    params = "&".join([f"{quote_plus(n)}={quote_plus(v)}" for n, v in hidden] + [f"{quote_plus(field['name'])}={{q}}"])
+    path = p.path or "/"
+    host = p.netloc.lower()
+    host_tpl = "{d}" if host == domain else host  # keep "www." etc. as the shop uses it
+    template = f"https://{host_tpl}{path}?{params}"
+    FORM_SEARCH[domain] = ("html", template)
+    print(f"  > {domain} kereső az oldal űrlapjából: {template}")
+    return FORM_SEARCH[domain]
+
+
 SITEMAPS = {}       # domain -> list of product-ish URLs (loaded once per run)
 PROBED = set()      # domains whose search URLs were all tried in this run
 
@@ -1170,7 +1229,11 @@ def sitemap_urls(session, domain, timeout):
             CRAWL_DELAY[domain] = float(m.group(1))
     except Exception:
         pass
-    roots += [f"https://{domain}/sitemap.xml", f"https://{domain}/sitemap_index.xml"]
+    roots += [f"https://{domain}/sitemap.xml", f"https://{domain}/sitemap_index.xml",
+              f"https://www.{domain}/sitemap.xml", f"https://{domain}/media/sitemap.xml",
+              f"https://{domain}/pub/media/sitemap.xml", f"https://{domain}/media/sitemap/sitemap.xml",
+              f"https://{domain}/sitemap/sitemap.xml", f"https://{domain}/sitemaps/sitemap.xml",
+              f"https://{domain}/sitemap_nl.xml", f"https://{domain}/media/sitemap_nl.xml"]
     urls, seen_maps = [], set()
     for root in roots:
         if urls:
@@ -1237,6 +1300,8 @@ def sitemap_candidates(session, product, domain, timeout, limit=5):
 def _check_candidates(session, cands, product, competitor, cache, timeout, retries):
     domain = competitor["domain"]
     for cand in cands:
+        if not cand.get("url") or is_search_url(cand["url"]):
+            continue
         owner = cache.url_owner(domain, cand["url"])
         if owner and owner != (product.get("ean") or product["name"]):
             continue  # this page already belongs to another product
@@ -1303,6 +1368,28 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
                 break  # the shop protects its search: use the sitemap below
             # network trouble: try again next run, cache nothing
             return "blocked", None, f"keresés hiba: {e}"
+
+    # the shop's own search form, read from its home page
+    if not competitor.get("search_url") and not (site.get("search_verified")):
+        form = discover_search_form(session, domain, timeout)
+        if form and form[1] not in [m[1] for m in methods]:
+            method, template = form
+            try:
+                got_any = False
+                for query, by_ean in queries:
+                    cands = run_search(session, method, template, domain, query, product, timeout, by_ean, escalate=True)
+                    search_ok = True
+                    if cands:
+                        got_any = True
+                        cache.set_site(domain, method, template, verified=True)
+                        site = cache.get_site(domain)
+                    v = _check_candidates(session, cands, product, competitor, cache, timeout, retries)
+                    if v:
+                        return "found", _found_url(cands, v), v
+                if got_any:
+                    return "not_sold", None, "nem árulja (a shop saját keresője alapján)"
+            except (SearchUnsupported, FetchError):
+                pass
 
     # sitemap fallback: shops whose search runs in JavaScript, or lists variants under one product.
     # Not over the browser: a sitemap there would cost a lot of residential traffic.

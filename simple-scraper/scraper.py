@@ -66,7 +66,11 @@ def get_proxies(config):
     if not user or not password:
         sys.exit("HIBA: a proxy be van kapcsolva, de nincs username/password (WEBSHARE_USER / WEBSHARE_PASS secret).")
 
-    # Webshare rotating endpoint: '-rotate' suffix = new IP per request
+    # Webshare username parameters: {username}-{country}-rotate
+    #   country: e.g. "nl" -> only Dutch IPs; "rotate" -> new IP per request
+    country = str(proxy_cfg.get("country") or "").strip().lower()
+    if country and f"-{country}" not in user:
+        user = f"{user}-{country}"
     if proxy_cfg.get("rotate", True) and not user.endswith("-rotate"):
         user = f"{user}-rotate"
     host = proxy_cfg.get("host", "p.webshare.io")
@@ -112,6 +116,8 @@ def load_products(path: Path) -> list[dict]:
 
 # ---------------------------------------------------------------- http
 
+TRAFFIC = {"bytes": 0}  # rough proxy usage (response bodies only)
+
 
 def fetch(session, url, timeout, retries, expect_json=False):
     last_err = None
@@ -119,10 +125,11 @@ def fetch(session, url, timeout, retries, expect_json=False):
         try:
             headers = {"Accept": "application/json"} if expect_json else None
             resp = session.get(url, timeout=timeout, headers=headers)
+            TRAFFIC["bytes"] += len(resp.content)
             if resp.status_code == 200:
                 return resp
             last_err = f"HTTP {resp.status_code}"
-            if resp.status_code == 404:
+            if resp.status_code in (404, 410):
                 break
         except requests.exceptions.RequestException as e:
             last_err = f"Hálózati hiba: {type(e).__name__}"
@@ -284,30 +291,27 @@ def scrape_product(session, product, timeout, retries) -> dict:
         found = None
         html_err = None
         soup = None
-        try:
-            soup = BeautifulSoup(fetch(session, url, timeout, retries).text, "lxml")
-        except RuntimeError as e:
-            html_err = str(e)
-
-        if soup is not None:
-            # 1) your own selector from Excel
+        # 1) Shopify JSON first: a few KB instead of a 0.5-1.5 MB HTML page
+        #    (residential proxy is billed per GB). Skipped if you set a selector.
+        if not product.get("price_selector"):
+            try:
+                found = strat_shopify(session, url, timeout, retries=1)
+            except Exception:
+                pass
+        # 2) HTML page only when needed
+        if not found:
+            try:
+                soup = BeautifulSoup(fetch(session, url, timeout, retries).text, "lxml")
+            except RuntimeError as e:
+                html_err = str(e)
+        if not found and soup is not None:
             if product.get("price_selector"):
                 found = strat_selector(soup, product["price_selector"])
-            # 2) automatic strategies
             if not found:
-                for fn in (strat_jsonld, strat_meta, strat_woocommerce):
+                for fn in (strat_jsonld, strat_meta, strat_woocommerce, strat_generic):
                     found = fn(soup)
                     if found:
                         break
-        # 3) Shopify JSON (also works when the HTML page is blocked)
-        if not found:
-            try:
-                found = strat_shopify(session, url, timeout, retries)
-            except Exception:
-                pass
-        # 4) last resort
-        if not found and soup is not None:
-            found = strat_generic(soup)
 
         if not found:
             result["error"] = html_err or (
@@ -350,11 +354,20 @@ def save_to_supabase(supabase: Client, results: list[dict]):
 # ---------------------------------------------------------------- main
 
 
-def check_ip(session):
+def check_ip(session, expected_country=None):
+    """Logs the outgoing proxy IP and its country."""
     try:
-        print(f"Kimenő IP: {session.get('https://ipv4.webshare.io/', timeout=15).text.strip()}")
-    except Exception as e:
-        print(f"IP ellenőrzés sikertelen: {e}")
+        info = session.get("https://ipinfo.io/json", timeout=15).json()
+        ip, country = info.get("ip"), str(info.get("country", "")).lower()
+        print(f"Kimenő IP: {ip} (ország: {country.upper() or '?'})")
+        if expected_country and country and country != expected_country.lower():
+            print(f"FIGYELEM: a proxy nem {expected_country.upper()} IP-t adott, hanem {country.upper()}-t. "
+                  "Nézd meg a Webshare proxy listádban, van-e benne holland proxy.")
+    except Exception:
+        try:
+            print(f"Kimenő IP: {session.get('https://ipv4.webshare.io/', timeout=15).text.strip()}")
+        except Exception as e:
+            print(f"IP ellenőrzés sikertelen: {e}")
 
 
 def main():
@@ -378,7 +391,7 @@ def main():
     })
     if proxies:
         session.proxies.update(proxies)
-        check_ip(session)
+        check_ip(session, config.get("proxy", {}).get("country"))
 
     results = []
     print(f"[{datetime.now().isoformat()}] Scraping indult - {len(products)} termék")
@@ -408,7 +421,7 @@ def main():
             print(f"HIBA a Supabase mentésnél: {e}")
 
     ok = sum(r["status"] == "ok" for r in results)
-    print(f"Kész: {ok}/{len(results)} sikeres.")
+    print(f"Kész: {ok}/{len(results)} sikeres. Becsült proxy forgalom: {TRAFFIC['bytes'] / 1_000_000:.1f} MB")
     # red workflow if everything failed (likely proxy/block) or the DB save failed
     if ok == 0 or save_failed:
         sys.exit(1)

@@ -34,9 +34,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Chrome for the fallback on sites that block normal requests (~1 min)
+      # Browser for shops that block normal requests (~1 min). Patchright drives the
+      # runner's own Google Chrome; its Chromium is the fallback.
       - name: Install browser
-        run: python -m playwright install --with-deps chromium
+        run: python -m patchright install --with-deps chromium
 
       - name: Run scraper
         env:
@@ -44,7 +45,8 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           WEBSHARE_USER: ${{ secrets.WEBSHARE_USER }}
           WEBSHARE_PASS: ${{ secrets.WEBSHARE_PASS }}
-        run: python scraper.py
+        # a virtual display, so the browser runs visibly (headless is easier to detect)
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1366x900x24" python scraper.py
 
       - name: Upload CSV backup
         if: always()

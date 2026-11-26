@@ -95,11 +95,19 @@ def get_proxies(config):
         sys.exit("HIBA: a proxy be van kapcsolva, de nincs username/password (WEBSHARE_USER / WEBSHARE_PASS secret).")
 
     # Webshare username parameters: {username}-{country}-rotate
+    # The dashboard often shows the username already ending in "-rotate" (or "-nl-rotate"):
+    # strip those first, then add them back in the right order.
     country = str(proxy_cfg.get("country") or "").strip().lower()
-    if country and f"-{country}" not in user:
+    base = re.sub(r"-rotate$", "", user)
+    if country:
+        base = re.sub(rf"-{re.escape(country)}$", "", base, flags=re.I)
+    user = base
+    if country:
         user = f"{user}-{country}"
-    if proxy_cfg.get("rotate", True) and not user.endswith("-rotate"):
+    if proxy_cfg.get("rotate", True):
         user = f"{user}-rotate"
+    masked = (base[:2] + "*" * max(len(base) - 2, 0)) + user[len(base):]
+    print(f"Webshare username formátum: {masked}")
     host = proxy_cfg.get("host", "p.webshare.io")
     port = proxy_cfg.get("port", 80)
 

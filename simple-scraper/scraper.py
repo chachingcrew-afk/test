@@ -168,8 +168,21 @@ def load_products(path: Path) -> list[dict]:
             "url": _cell(row, "url"),
             "price_selector": _cell(row, "price_selector"),
             "currency": _cell(row, "currency") or "EUR",
+            "our_price": clean_price(_cell(row, "our_price") or _cell(row, "prijs_(€)")),
         })
     return products
+
+
+def sync_products(supabase, products):
+    """Keep the products table (name, brand, our price) in step with the Excel, for the dashboard."""
+    rows = {}
+    for p in products:
+        if p.get("ean"):
+            rows[p["ean"]] = {"ean": p["ean"], "name": p["name"], "brand": p.get("brand"),
+                              "our_price": p.get("our_price"),
+                              "updated_at": datetime.now(timezone.utc).isoformat()}
+    if rows:
+        supabase.table("products").upsert(list(rows.values()), on_conflict="ean").execute()
 
 
 def norm_domain(d):
@@ -199,7 +212,40 @@ def load_competitors(path: Path) -> list[dict]:
 
 # ================================================================ http
 
-TRAFFIC = {"bytes": 0}  # rough proxy usage (response bodies only)
+TRAFFIC = {"bytes": 0, "direct": 0}  # bytes = residential proxy usage, direct = free
+
+# Per shop: how we reach it. "direct" (no proxy, free) -> "proxy" (Dutch residential,
+# when the shop blocks direct) -> "browser" (Playwright over the proxy, when even that
+# is blocked). Remembered in Supabase competitor_sites.access_mode.
+ACCESS = {}
+SESSIONS = {}  # "direct" and "proxy" curl_cffi sessions
+LEVELS = ["direct", "proxy", "browser"]
+
+
+def access_mode(domain):
+    return ACCESS.get(domain, SESSIONS.get("default_mode", "direct"))
+
+
+def escalate(domain):
+    """Move a shop one level up after it blocked us. Returns the new mode or None."""
+    mode = access_mode(domain)
+    nxt = None
+    for cand in LEVELS[LEVELS.index(mode) + 1:]:
+        if cand == "proxy" and "proxy" not in SESSIONS:
+            continue
+        if cand == "browser" and not BROWSER.enabled:
+            continue
+        nxt = cand
+        break
+    if not nxt:
+        return None
+    ACCESS[domain] = nxt
+    label = {"proxy": "holland residential proxyn", "browser": "böngészővel (Playwright)"}[nxt]
+    print(f"  > {domain} blokkol, mostantól {label} próbálom")
+    cache = CACHE_REF.get("cache")
+    if cache is not None:
+        cache.set_access(domain, nxt)
+    return nxt
 
 
 # ================================================================ browser fallback (Playwright)
@@ -369,22 +415,30 @@ class FetchError(RuntimeError):
 
 
 def fetch(session, url, timeout, retries, expect_json=False):
+    """session is ignored when SESSIONS is set up (main); kept for tests."""
     domain = _domain_of(url)
-    if BROWSER.needs(domain):
+    if access_mode(domain) == "browser" or BROWSER.needs(domain):
         return BROWSER.get(url, timeout)
     last_err, last_status = None, None
     for attempt in range(1, retries + 1):
+        mode = access_mode(domain)
+        if mode == "browser":
+            return BROWSER.get(url, timeout)
+        sess = SESSIONS.get(mode) or session
         try:
             headers = {"Accept": "application/json"} if expect_json else None
-            resp = session.get(url, timeout=timeout, headers=headers)
-            TRAFFIC["bytes"] += len(resp.content)
+            resp = sess.get(url, timeout=timeout, headers=headers)
+            TRAFFIC["bytes" if mode == "proxy" else "direct"] += len(resp.content)
             blocked = resp.status_code in (403, 429, 503) and (
                 resp.status_code != 503 or looks_like_challenge(resp.text))
             if resp.status_code == 200 and not expect_json and looks_like_challenge(resp.text):
                 blocked = True
-            if blocked and BROWSER.enabled:
-                BROWSER.mark(domain, CACHE_REF.get("cache"))
-                return BROWSER.get(url, timeout)
+            if blocked:
+                if SESSIONS and escalate(domain):
+                    return fetch(session, url, timeout, retries, expect_json)
+                if not SESSIONS and BROWSER.enabled and not BROWSER.needs(domain):
+                    BROWSER.mark(domain, CACHE_REF.get("cache"))
+                    return BROWSER.get(url, timeout)
             if resp.status_code == 200:
                 return resp
             last_err, last_status = f"HTTP {resp.status_code}", resp.status_code
@@ -881,6 +935,7 @@ class Cache:
         old = self.sites.get(domain) or {}
         row = {"domain": domain, "search_method": method, "search_template": template,
                "needs_browser": bool(old.get("needs_browser")),
+               "access_mode": old.get("access_mode"),
                "updated_at": datetime.now(timezone.utc).isoformat()}
         self.sites[domain] = row
         self.dirty_sites[domain] = row
@@ -893,6 +948,22 @@ class Cache:
 
     def browser_domains(self):
         return {d for d, r in self.sites.items() if r.get("needs_browser")}
+
+    def set_access(self, domain, mode):
+        old = dict(self.sites.get(domain) or {"domain": domain, "search_method": None, "search_template": None})
+        old.update(access_mode=mode, needs_browser=(mode == "browser"),
+                   updated_at=datetime.now(timezone.utc).isoformat())
+        self.sites[domain] = old
+        self.dirty_sites[domain] = old
+
+    def access_modes(self):
+        out = {}
+        for d, r in self.sites.items():
+            if r.get("access_mode"):
+                out[d] = r["access_mode"]
+            elif r.get("needs_browser"):
+                out[d] = "browser"
+        return out
 
     def flush(self):
         if self.sb:
@@ -1162,6 +1233,11 @@ def main():
     proxies = get_proxies(config)
     supabase = get_supabase_client(config)
     BROWSER.enabled = bool(s.get("browser_fallback", True))
+    if supabase:
+        try:
+            sync_products(supabase, products)
+        except Exception as e:
+            print(f"FIGYELEM: a termékek feltöltése nem sikerült: {e}")
     try:
         cache = Cache(supabase)
         CACHE_REF["cache"] = cache
@@ -1175,11 +1251,27 @@ def main():
 
     # Chrome impersonation sets a matching User-Agent and headers itself;
     # a custom User-Agent would contradict the fingerprint, so it is not set.
-    session = curl_requests.Session(impersonate=IMPERSONATE)
-    session.headers.update({"Accept-Language": "nl-NL,nl;q=0.9,en;q=0.8"})
+    def new_session(px=None):
+        sess = curl_requests.Session(impersonate=IMPERSONATE)
+        sess.headers.update({"Accept-Language": "nl-NL,nl;q=0.9,en;q=0.8"})
+        if px:
+            sess.proxies.update(px)
+        return sess
+
+    # proxy.mode: "fallback" (default) = direct first, residential only for shops that block;
+    # "always" = everything over the residential proxy
+    proxy_mode = str(config.get("proxy", {}).get("mode", "fallback")).lower()
+    session = new_session()
+    SESSIONS["direct"] = session
     if proxies:
-        session.proxies.update(proxies)
-        check_ip(session, config.get("proxy", {}).get("country"))
+        SESSIONS["proxy"] = new_session(proxies)
+        check_ip(SESSIONS["proxy"], config.get("proxy", {}).get("country"))
+        if proxy_mode == "always":
+            SESSIONS["default_mode"] = "proxy"
+    print(f"Proxy mód: {'mindig proxy' if SESSIONS.get('default_mode') == 'proxy' else 'közvetlen, proxy csak blokkolásnál'}")
+    ACCESS.update(cache.access_modes())
+    if ACCESS:
+        print("Korábban blokkoló shopok: " + ", ".join(f"{d} ({m})" for d, m in sorted(ACCESS.items()) if m != "direct"))
 
     jobs = []
     for p in products:
@@ -1239,7 +1331,8 @@ def main():
     ok = sum(r["status"] == "ok" for r in results)
     nf = sum(r["status"] == "not_found" for r in results)
     print(f"Kész: {ok} ár, {nf} nem árulja, {len(results) - ok - nf} hiba, {skipped} kihagyva. "
-          f"Becsült proxy forgalom: {TRAFFIC['bytes'] / 1_000_000:.1f} MB")
+          f"Becsült proxy forgalom: {TRAFFIC['bytes'] / 1_000_000:.1f} MB "
+          f"(közvetlen, ingyenes: {TRAFFIC['direct'] / 1_000_000:.1f} MB)")
     if (ok == 0 and nf == 0) or save_failed:
         sys.exit(1)
 

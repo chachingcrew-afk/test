@@ -33,6 +33,13 @@ from urllib.parse import quote_plus, urljoin, urlparse, urlunparse
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from curl_cffi import requests as curl_requests
+from curl_cffi.requests.exceptions import RequestException as CurlRequestException
+
+# curl_cffi sends the same TLS/HTTP2 fingerprint and headers as a real Chrome,
+# so bot protection that blocks Python's "requests" library lets it through.
+IMPERSONATE = "chrome"
+NET_ERRORS = (requests.exceptions.RequestException, CurlRequestException)
 from supabase import create_client, Client
 
 CONFIG_PATH = Path(os.getenv("CONFIG_FILE", "config.json"))
@@ -209,7 +216,7 @@ def fetch(session, url, timeout, retries, expect_json=False):
             last_err, last_status = f"HTTP {resp.status_code}", resp.status_code
             if resp.status_code in (404, 410):
                 break
-        except requests.exceptions.RequestException as e:
+        except NET_ERRORS as e:
             last_err = f"Hálózati hiba: {type(e).__name__}"
         time.sleep(2 * attempt + random.random())
     raise FetchError(last_err or "ismeretlen hiba", last_status)
@@ -255,6 +262,28 @@ def ean_variants(ean):
     return {ean, e, e.zfill(13), e.zfill(14)}
 
 
+def page_eans(soup):
+    """EANs the page itself declares (schema.org gtin fields, itemprop gtin)."""
+    out = set()
+    for node in _jsonld_products(soup):
+        stack = [node]
+        while stack:
+            n = stack.pop()
+            if isinstance(n, list):
+                stack.extend(n)
+            elif isinstance(n, dict):
+                for k, v in n.items():
+                    if k.lower() in ("gtin", "gtin8", "gtin12", "gtin13", "gtin14", "ean") and v:
+                        out.add(re.sub(r"\D", "", str(v)))
+                    elif isinstance(v, (dict, list)):
+                        stack.append(v)
+    for tag in soup.select('[itemprop^="gtin"]'):
+        v = tag.get("content") or tag.get_text(strip=True)
+        if v:
+            out.add(re.sub(r"\D", "", v))
+    return {e for e in out if 8 <= len(e) <= 14}
+
+
 def ean_on_page(html, ean):
     if not ean:
         return False
@@ -262,9 +291,25 @@ def ean_on_page(html, ean):
     return bool(found & ean_variants(ean))
 
 
-def search_query_for_name(product):
-    name = re.sub(r"\(.*?\)", " ", product["name"])
-    return " ".join(name.split())
+def search_queries_for_name(product):
+    """Full name first, then a short version (brand + first 2 words).
+    Many shop searches need ALL words to match, so a long name like
+    'Liewood lunchbox Arthur Peach sea shell mix' finds nothing when the shop
+    calls it 'Arthur Lunchbox - Peach / Sea shell'. The match is still checked
+    strictly afterwards, so a shorter search query does not lower accuracy."""
+    name = " ".join(re.sub(r"\(.*?\)", " ", product["name"]).split())
+    brand = (product.get("brand") or "").strip()
+    words = [w for w in re.split(r"[\s\-/,]+", name) if w]
+    if brand:
+        bl = brand.lower().split()
+        words = [w for w in words if w.lower() not in bl]
+    words = [w for w in words if w.lower().strip(".") not in STOPWORDS]
+    short = " ".join(([brand] if brand else []) + words[:2]).strip()
+    out = []
+    for q in (name, short):
+        if q and q.lower() not in [o.lower() for o in out]:
+            out.append(q)
+    return out
 
 
 # ================================================================ price parsing
@@ -578,6 +623,9 @@ def verify_candidate(session, cand, product, competitor, timeout, retries):
     found = price_from_soup(soup, competitor.get("price_selector"))
     if ean_on_page(html, ean):
         return {"match_type": "ean", "score": 1.0, "found": found}
+    declared = page_eans(soup)
+    if ean and declared and not (declared & ean_variants(ean)):
+        return None  # page states another EAN: different product, whatever the name says
     s = name_score(name, page_title(soup), brand)
     if s >= NAME_MATCH_MIN:
         return {"match_type": "name", "score": s, "found": found}
@@ -661,7 +709,7 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
     queries = []
     if product.get("ean"):
         queries.append((product["ean"], True))
-    queries.append((search_query_for_name(product), False))
+    queries.extend((q, False) for q in search_queries_for_name(product))
 
     site = cache.get_site(domain)
     if competitor.get("search_url"):
@@ -868,14 +916,14 @@ def check_ip(session, expected_country=None):
         print(f"Kimenő IP: {ip} (ország: {country.upper() or '?'})")
         if expected_country and country and country != expected_country.lower():
             print(f"FIGYELEM: a proxy nem {expected_country.upper()} IP-t adott, hanem {country.upper()}-t.")
-    except requests.exceptions.ProxyError as e:
-        if "407" in str(e):
+    except NET_ERRORS as e:
+        if "407" in str(e) or "Proxy Authentication" in str(e):
             sys.exit("HIBA: a Webshare elutasította a belépést (407 Proxy Authentication Required).\n"
                      "  - WEBSHARE_USER / WEBSHARE_PASS a Rotating Residential csomag Proxy List oldaláról kell,\n"
                      "    Rotating Proxy Endpoint + Username/Password módban\n"
                      "  - ha több csomagod van, a residential csomag adatai kellenek (nem a régi ingyenesé)\n"
                      "  - nézd meg, nincs-e a secret elején/végén szóköz")
-        sys.exit(f"HIBA: nem sikerült csatlakozni a proxyhoz: {e}")
+        print(f"IP ellenőrzés sikertelen: {e}")
     except Exception as e:
         print(f"IP ellenőrzés sikertelen: {e}")
 
@@ -904,12 +952,10 @@ def main():
         sys.exit(f"HIBA: nem sikerült kapcsolódni a Supabase-hez ({type(e).__name__}: {e}).\n"
                  "  Ellenőrizd a SUPABASE_URL és SUPABASE_KEY secretet (price-tracker projekt).")
 
-    session = requests.Session()
-    session.headers.update({
-        "User-Agent": s.get("user_agent") or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "nl-NL,nl;q=0.9,en;q=0.8",
-    })
+    # Chrome impersonation sets a matching User-Agent and headers itself;
+    # a custom User-Agent would contradict the fingerprint, so it is not set.
+    session = curl_requests.Session(impersonate=IMPERSONATE)
+    session.headers.update({"Accept-Language": "nl-NL,nl;q=0.9,en;q=0.8"})
     if proxies:
         session.proxies.update(proxies)
         check_ip(session, config.get("proxy", {}).get("country"))

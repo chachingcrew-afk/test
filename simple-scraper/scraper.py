@@ -242,7 +242,7 @@ def escalate_domain(domain):
     if not nxt:
         return None
     ACCESS[domain] = nxt
-    label = {"proxy": "holland residential proxyn", "browser": "böngészővel (Playwright)"}[nxt]
+    label = {"proxy": "holland residential proxyn", "browser": "álcázott böngészővel"}[nxt]
     print(f"  > {domain} blokkol, mostantól {label} próbálom")
     cache = CACHE_REF.get("cache")
     if cache is not None:
@@ -286,16 +286,25 @@ class BrowserResponse:
 
 
 class BrowserFallback:
-    """Real Chrome (Playwright), started only when a site blocks us.
-    One context per domain with a sticky proxy IP, so the cookie a bot check
-    hands out stays valid. Images, fonts, CSS and third-party trackers are blocked."""
+    """Real Chrome, started only for shops that block plain requests.
+
+    Stealth: Patchright (a patched Playwright that hides automation traces) driving the
+    installed Google Chrome, visible on a virtual display when one exists (xvfb-run in the
+    workflow). Falls back to plain Playwright Chromium if Patchright or Chrome is missing.
+    One context per shop with a sticky proxy IP; its cookies and IP session are saved in
+    Supabase (browser_sessions), so a bot check passed once stays passed next run.
+    Images, fonts, CSS and third-party trackers are blocked; bot-check providers are allowed."""
 
     def __init__(self, enabled=True):
         self.enabled = enabled
         self.pw = self.browser = None
+        self.engine = None
         self.contexts = {}
+        self.sessions = {}        # domain -> {"sid", "cookies"} loaded from / saved to Supabase
+        self.dirty = set()
         self.domains = set()      # domains that need the browser in this run
         self.failed_start = False
+        self.supabase = None
 
     def needs(self, domain):
         return self.enabled and domain in self.domains
@@ -303,37 +312,94 @@ class BrowserFallback:
     def mark(self, domain, cache=None):
         if self.enabled and domain not in self.domains:
             self.domains.add(domain)
-            print(f"  > {domain} blokkol, mostantól böngészővel (Playwright) próbálom")
+            print(f"  > {domain} blokkol, mostantól böngészővel próbálom")
             if cache is not None:
                 cache.mark_browser(domain)
 
+    # ---- saved sessions
+    def load_sessions(self, supabase):
+        self.supabase = supabase
+        if not supabase:
+            return
+        try:
+            rows = supabase.table("browser_sessions").select("*").execute().data
+            self.sessions = {r["domain"]: {"sid": r.get("proxy_session"), "cookies": r.get("cookies") or []} for r in rows}
+        except Exception as e:
+            print(f"FIGYELEM: a mentett böngésző-sütik nem töltődtek be: {e}")
+
+    def save_sessions(self):
+        if not self.supabase or not self.dirty:
+            return
+        rows = [{"domain": d, "proxy_session": self.sessions[d].get("sid"),
+                 "cookies": self.sessions[d].get("cookies") or [],
+                 "updated_at": datetime.now(timezone.utc).isoformat()} for d in self.dirty if d in self.sessions]
+        try:
+            self.supabase.table("browser_sessions").upsert(rows, on_conflict="domain").execute()
+            print(f"Böngésző-sütik mentve: {', '.join(sorted(self.dirty))}")
+        except Exception as e:
+            print(f"FIGYELEM: a böngésző-sütik mentése nem sikerült: {e}")
+
+    # ---- browser
     def _start(self):
         if self.browser or self.failed_start:
             return self.browser is not None
+        headful = bool(os.environ.get("DISPLAY"))
+        attempts = []
         try:
-            from playwright.sync_api import sync_playwright
-            self.pw = sync_playwright().start()
-            self.browser = self.pw.chromium.launch(
-                headless=True, args=["--disable-blink-features=AutomationControlled"])
-            return True
-        except Exception as e:
-            self.failed_start = True
-            print(f"FIGYELEM: a böngésző nem indult el ({e}), a blokkoló oldalakat kihagyom")
-            return False
+            from patchright.sync_api import sync_playwright as patch_pw
+            attempts.append(("patchright+chrome", patch_pw, {"channel": "chrome", "headless": not headful}))
+            attempts.append(("patchright+chromium", patch_pw, {"headless": not headful}))
+        except ImportError:
+            pass
+        try:
+            from playwright.sync_api import sync_playwright as plain_pw
+            attempts.append(("playwright+chromium", plain_pw,
+                             {"headless": True, "args": ["--disable-blink-features=AutomationControlled"]}))
+        except ImportError:
+            pass
+        for name, factory, opts in attempts:
+            try:
+                self.pw = factory().start()
+                self.browser = self.pw.chromium.launch(**opts)
+                self.engine = name
+                print(f"  > böngésző: {name}{' (látható, virtuális kijelzőn)' if headful and 'patchright' in name else ''}")
+                return True
+            except Exception as e:
+                print(f"  > {name} nem indult ({str(e).splitlines()[0][:120]})")
+                try:
+                    if self.pw:
+                        self.pw.stop()
+                except Exception:
+                    pass
+                self.pw = self.browser = None
+        self.failed_start = True
+        print("FIGYELEM: a böngésző nem indult el, a blokkoló oldalakat kihagyom")
+        return False
 
     def _context(self, domain):
         if domain in self.contexts:
             return self.contexts[domain]
-        opts = {"locale": "nl-NL", "timezone_id": "Europe/Amsterdam",
-                "viewport": {"width": 1366, "height": 850}}
+        saved = self.sessions.setdefault(domain, {})
+        stealth = self.engine and self.engine.startswith("patchright")
+        # Patchright works best with Chrome's own settings: no custom user agent or viewport
+        opts = {"locale": "nl-NL", "timezone_id": "Europe/Amsterdam"}
+        opts["no_viewport" if stealth else "viewport"] = True if stealth else {"width": 1366, "height": 850}
         if PROXY_PARTS:
-            # sticky session: {username}-{country}-{session id} keeps one IP for this domain
-            sid = random.randint(100000, 999999)
-            user = "-".join(x for x in (PROXY_PARTS["base"], PROXY_PARTS.get("country"), str(sid)) if x)
+            # sticky session: {username}-{country}-{session id} keeps one IP; the same id is
+            # reused next run so saved cookies match the IP they were issued to
+            sid = saved.get("sid") or str(random.randint(100000, 999999))
+            saved["sid"] = sid
+            user = "-".join(x for x in (PROXY_PARTS["base"], PROXY_PARTS.get("country"), sid) if x)
             opts["proxy"] = {"server": f"http://{PROXY_PARTS['host']}:{PROXY_PARTS['port']}",
                              "username": user, "password": PROXY_PARTS["password"]}
         ctx = self.browser.new_context(**opts)
-        ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        if not stealth:
+            ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        if saved.get("cookies"):
+            try:
+                ctx.add_cookies(saved["cookies"])
+            except Exception:
+                pass
 
         def route(r):
             req = r.request
@@ -353,48 +419,90 @@ class BrowserFallback:
                 pass
         ctx.on("response", count)
         self.contexts[domain] = ctx
+        self._warm_up(ctx, domain)
         return ctx
+
+    def _warm_up(self, ctx, domain):
+        """Open the home page once, like a visitor, before asking for anything else."""
+        page = ctx.new_page()
+        try:
+            page.goto(f"https://{domain}/", wait_until="domcontentloaded", timeout=45000)
+            self._wait_challenge(page)
+            page.wait_for_timeout(random.randint(1500, 3500))
+            try:
+                page.mouse.move(random.randint(100, 600), random.randint(100, 500))
+                page.mouse.wheel(0, random.randint(300, 900))
+            except Exception:
+                pass
+            page.wait_for_timeout(random.randint(800, 1800))
+        except Exception:
+            pass
+        finally:
+            page.close()
+
+    def _wait_challenge(self, page, limit=30):
+        html = page.content()
+        waited = 0
+        while looks_like_challenge(html) and waited < limit:
+            page.wait_for_timeout(2500)
+            waited += 2.5
+            try:
+                page.wait_for_load_state("domcontentloaded", timeout=5000)
+            except Exception:
+                pass
+            html = page.content()
+        return html, waited
 
     def get(self, url, timeout):
         if not self._start():
             raise FetchError("böngésző nem elérhető", 403)
+        domain = _domain_of(url)
+        _polite_wait(domain)
         try:
-            page = self._context(_domain_of(url)).new_page()
+            ctx = self._context(domain)
+            page = ctx.new_page()
         except Exception as e:
             raise FetchError(f"böngésző hiba: {type(e).__name__}", 403)
         try:
             try:
-                resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout * 1000 + 15000)
+                resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout * 1000 + 25000)
             except Exception as e:
                 raise FetchError(f"böngésző hiba: {str(e).splitlines()[0][:120]}", 403)
             status = resp.status if resp else 0
-            html = page.content()
-            # wait for a bot check to finish (it reloads or redirects the page)
-            waited = 0
-            while looks_like_challenge(html) and waited < 25:
-                page.wait_for_timeout(2500)
-                waited += 2.5
+            ctype = ""
+            try:
+                ctype = (resp.headers.get("content-type") or "") if resp else ""
+            except Exception:
+                pass
+            # XML (sitemaps) and JSON: take the raw body, not the page Chrome draws around it
+            if status == 200 and ("xml" in ctype or "json" in ctype):
                 try:
-                    page.wait_for_load_state("domcontentloaded", timeout=5000)
+                    body = resp.body()
+                    self._save_cookies(ctx, domain)
+                    return BrowserResponse(200, body.decode("utf-8", "ignore"), page.url, ctype)
                 except Exception:
                     pass
-                html = page.content()
+            html, waited = self._wait_challenge(page)
             if looks_like_challenge(html):
                 raise FetchError("bot-ellenőrzés a böngészőben sem ment át", 403)
             if waited:
                 status = 200  # challenge solved, the final page is the real one
-            ctype = "text/html"
-            try:
-                ctype = (resp.headers.get("content-type") or ctype) if resp and not waited else ctype
-            except Exception:
-                pass
             if status != 200:
                 raise FetchError(f"HTTP {status} (böngésző)", status)
-            return BrowserResponse(200, html, page.url, ctype)
+            self._save_cookies(ctx, domain)
+            return BrowserResponse(200, html, page.url, ctype or "text/html")
         finally:
             page.close()
 
+    def _save_cookies(self, ctx, domain):
+        try:
+            self.sessions.setdefault(domain, {})["cookies"] = ctx.cookies()
+            self.dirty.add(domain)
+        except Exception:
+            pass
+
     def close(self):
+        self.save_sessions()
         try:
             for c in self.contexts.values():
                 c.close()
@@ -822,12 +930,12 @@ def candidates_from_html(html, base_url, domain, product, by_ean):
     return [u for u, _ in items[:MAX_CANDIDATES]]
 
 
-def run_search(session, method, template, domain, query, product, timeout, by_ean):
+def run_search(session, method, template, domain, query, product, timeout, by_ean, escalate=False):
     """Returns a list of candidate dicts: {url, price?, ean_match?}.
     Raises SearchUnsupported if this search method does not exist on the site."""
     url = template.format(d=domain, q=quote_plus(query))
     try:
-        resp = fetch(session, url, timeout, 1, expect_json=method != "html", escalate=False)
+        resp = fetch(session, url, timeout, 1, expect_json=method != "html", escalate=escalate)
     except FetchError as e:
         if e.status in (404, 405, 410, 400, 401):
             raise SearchUnsupported(str(e))
@@ -1030,9 +1138,18 @@ def _locs(xml_text):
     return [u.strip() for u in re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", xml_text)]
 
 
+SITEMAP_PAID_MB = 20.0  # max sitemap MB per shop over proxy/browser (config: sitemap_max_mb_paid)
+SITEMAP_BYTES = {}
+
+
 def _fetch_text(session, url, timeout):
+    domain = _domain_of(url)
+    paid = access_mode(domain) != "direct" or BROWSER.needs(domain)
+    if paid and SITEMAP_BYTES.get(domain, 0) / 1_000_000 >= SITEMAP_PAID_MB:
+        raise FetchError("sitemap forgalmi limit", 413)
     resp = fetch(session, url, timeout, 1)
     body = resp.content
+    SITEMAP_BYTES[domain] = SITEMAP_BYTES.get(domain, 0) + len(body)
     if body[:2] == b"\x1f\x8b":  # .xml.gz
         import gzip
         body = gzip.decompress(body)
@@ -1155,6 +1272,7 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
 
     search_ok = False  # some search answered
     search_blocked = False
+    blocked_template = None
     for method, template in methods:
         try:
             got_any = False
@@ -1181,6 +1299,7 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
                 continue
             if e.status in (403, 429):
                 search_blocked = True
+                blocked_template = (method, template)
                 break  # the shop protects its search: use the sitemap below
             # network trouble: try again next run, cache nothing
             return "blocked", None, f"keresés hiba: {e}"
@@ -1188,8 +1307,8 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
     # sitemap fallback: shops whose search runs in JavaScript, or lists variants under one product.
     # Not over the browser: a sitemap there would cost a lot of residential traffic.
     try:
-        # sitemaps can be tens of MB: only over the free direct connection
-        cands = sitemap_candidates(session, product, domain, timeout) if access_mode(domain) == "direct" else []
+        # sitemaps can be tens of MB: over the paid proxy/browser only up to SITEMAP_PAID_MB
+        cands = sitemap_candidates(session, product, domain, timeout)
     except FetchError as e:
         cands = []
         if e.status in (403, 429):
@@ -1200,8 +1319,19 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
             return "found", _found_url(cands, v), v
     if search_ok or cands or SITEMAPS.get(domain):
         return "not_sold", None, "nem árulja (keresés és sitemap alapján sincs egyező termék)"
-    if search_blocked:
-        return "blocked", None, "a kereső blokkol, és sitemap sem érhető el"
+    if search_blocked and blocked_template:
+        # last resort: the search itself through the proxy / browser
+        method, template = blocked_template
+        try:
+            for query, by_ean in queries:
+                cands = run_search(session, method, template, domain, query, product, timeout, by_ean, escalate=True)
+                v = _check_candidates(session, cands, product, competitor, cache, timeout, retries)
+                if v:
+                    cache.set_site(domain, method, template, verified=True)
+                    return "found", _found_url(cands, v), v
+            return "not_sold", None, "nem árulja (böngészős keresés alapján)"
+        except (SearchUnsupported, FetchError) as e:
+            return "blocked", None, f"a kereső és a sitemap is blokkol ({e})"
     if not competitor.get("search_url"):
         cache.set_site(domain, "none", None)
     return "no_search", None, ("nem találtam működő keresőt és sitemapot ezen az oldalon, "
@@ -1404,6 +1534,8 @@ def main():
     }
     delay_min, delay_max = float(s.get("delay_min", 1.5)), float(s.get("delay_max", 4.0))
     max_mb = float(s.get("max_mb_per_run", 0) or 0)
+    global SITEMAP_PAID_MB
+    SITEMAP_PAID_MB = float(s.get("sitemap_max_mb_paid", SITEMAP_PAID_MB))
     max_minutes = float(s.get("max_minutes_per_run", 100) or 0)
     started = time.monotonic()
 
@@ -1421,6 +1553,7 @@ def main():
     try:
         cache = Cache(supabase)
         CACHE_REF["cache"] = cache
+        BROWSER.load_sessions(supabase)
         for d in cache.browser_domains():
             BROWSER.domains.add(d)
         if BROWSER.enabled and BROWSER.domains:

@@ -518,6 +518,10 @@ def ean_on_page(html, ean):
     scripts), because those made a wrong page look like a match."""
     if not ean:
         return False
+    # variants: EAN in the page's product JSON, e.g. "ean":"5400858181343" or "barcode": ...
+    in_json = set(re.findall(r'"(?:ean|ean13|gtin|gtin8|gtin12|gtin13|gtin14|barcode)"\s*:\s*"?(\d{8,14})', html, re.I))
+    if in_json & ean_variants(ean):
+        return True
     soup = BeautifulSoup(html, "lxml")
     declared = page_eans(soup)
     if declared:
@@ -841,7 +845,14 @@ def run_search(session, method, template, domain, query, product, timeout, by_ea
 
 
 def verify_candidate(session, cand, product, competitor, timeout, retries):
-    """Returns dict(match_type, score, price, raw) or None."""
+    """Returns dict(match_type, score, found, url) or None."""
+    v = _verify_candidate(session, cand, product, competitor, timeout, retries)
+    if v:
+        v["url"] = cand["url"]
+    return v
+
+
+def _verify_candidate(session, cand, product, competitor, timeout, retries):
     ean, name, brand = product.get("ean"), product["name"], product.get("brand")
     url = cand["url"]
 
@@ -931,11 +942,12 @@ class Cache:
     def get_site(self, domain):
         return self.sites.get(domain)
 
-    def set_site(self, domain, method, template):
+    def set_site(self, domain, method, template, verified=None):
         old = self.sites.get(domain) or {}
         row = {"domain": domain, "search_method": method, "search_template": template,
                "needs_browser": bool(old.get("needs_browser")),
                "access_mode": old.get("access_mode"),
+               "search_verified": bool(old.get("search_verified")) if verified is None else verified,
                "updated_at": datetime.now(timezone.utc).isoformat()}
         self.sites[domain] = row
         self.dirty_sites[domain] = row
@@ -985,8 +997,110 @@ class Cache:
 # ================================================================ find + scrape
 
 
+SITEMAPS = {}       # domain -> list of product-ish URLs (loaded once per run)
+PROBED = set()      # domains whose search URLs were all tried in this run
+
+
+def _locs(xml_text):
+    return [u.strip() for u in re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", xml_text)]
+
+
+def _fetch_text(session, url, timeout):
+    resp = fetch(session, url, timeout, 1)
+    body = resp.content
+    if body[:2] == b"\x1f\x8b":  # .xml.gz
+        import gzip
+        body = gzip.decompress(body)
+        return body.decode("utf-8", "ignore")
+    return resp.text
+
+
+def sitemap_urls(session, domain, timeout):
+    """All page URLs from the shop's sitemaps (product sitemaps first). Cached per run."""
+    if domain in SITEMAPS:
+        return SITEMAPS[domain]
+    roots = []
+    try:
+        robots = _fetch_text(session, f"https://{domain}/robots.txt", timeout)
+        roots += re.findall(r"(?im)^\s*sitemap:\s*(\S+)", robots)
+    except Exception:
+        pass
+    roots += [f"https://{domain}/sitemap.xml", f"https://{domain}/sitemap_index.xml"]
+    urls, seen_maps = [], set()
+    for root in roots:
+        if urls:
+            break
+        try:
+            text = _fetch_text(session, root, timeout)
+        except Exception:
+            continue
+        seen_maps.add(root)
+        locs = _locs(text)
+        if "<sitemapindex" in text:
+            children = [u for u in locs if u not in seen_maps]
+            # product sitemaps first; skip images, posts, pages, categories
+            children.sort(key=lambda u: (0 if "product" in u.lower() else 1))
+            children = [u for u in children if not re.search(r"(image|post|page|categor|blog|tag|author)", u, re.I)
+                        or "product" in u.lower()][:12]
+            for child in children:
+                try:
+                    urls += _locs(_fetch_text(session, child, timeout))
+                except Exception:
+                    continue
+                if len(urls) > 60000:
+                    break
+        else:
+            urls += locs
+    urls = [u for u in urls if _same_site(u, domain) and not u.lower().endswith((".jpg", ".png", ".webp", ".xml"))]
+    SITEMAPS[domain] = urls
+    print(f"  > {domain} sitemap: {len(urls)} oldal")
+    return urls
+
+
+def sitemap_candidates(session, product, domain, timeout, limit=5):
+    """Best-matching product pages from the sitemap, by the words in their URL."""
+    urls = sitemap_urls(session, domain, timeout)
+    if not urls:
+        return []
+    ours = set(tokens(product["name"])) - set(tokens(product.get("brand") or ""))
+    scored = []
+    for u in urls:
+        slug = urlparse(u).path.rsplit("/", 1)[-1] or urlparse(u).path
+        slug_tokens = set(tokens(slug.replace("-", " ").replace("_", " ").replace(".html", "")))
+        if not slug_tokens or not ours:
+            continue
+        hit = 0.0
+        for t in ours:
+            if t in slug_tokens:
+                hit += 1
+            elif len(t) > 4 and difflib.get_close_matches(t, slug_tokens, n=1, cutoff=0.8):
+                hit += 0.8
+        score = hit / len(ours)
+        if product.get("brand") and set(tokens(product["brand"])) & slug_tokens:
+            score += 0.15
+        if score >= 0.34:
+            scored.append((score, u))
+    scored.sort(key=lambda x: -x[0])
+    return [{"url": u, "via": "sitemap"} for _, u in scored[:limit]]
+
+
+def _check_candidates(session, cands, product, competitor, cache, timeout, retries):
+    domain = competitor["domain"]
+    for cand in cands:
+        owner = cache.url_owner(domain, cand["url"])
+        if owner and owner != (product.get("ean") or product["name"]):
+            continue  # this page already belongs to another product
+        try:
+            v = verify_candidate(session, cand, product, competitor, timeout, retries)
+        except FetchError:
+            continue
+        if v:
+            return v
+    return None
+
+
 def find_on_site(session, product, competitor, cache, timeout, retries):
-    """Search the competitor site.
+    """Search the competitor site, then its sitemap.
     Returns (kind, url, verification_or_reason), kind: found | not_sold | blocked | no_search"""
     domain = competitor["domain"]
     queries = []
@@ -994,42 +1108,68 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
         queries.append((product["ean"], True))
     queries.extend((q, False) for q in search_queries_for_name(product))
 
-    site = cache.get_site(domain)
+    site = cache.get_site(domain) or {}
     if competitor.get("search_url"):
         methods = [("html", competitor["search_url"])]
-    elif site and site.get("search_template"):
+    elif site.get("search_template") and (site.get("search_verified") or domain in PROBED):
         methods = [(site["search_method"], site["search_template"])]
     else:
-        methods = SEARCH_TEMPLATES
+        # not proven yet: try every known search URL once per run, the cached one first
+        methods = list(SEARCH_TEMPLATES)
+        if site.get("search_template"):
+            methods.sort(key=lambda m: 0 if m[1] == site["search_template"] else 1)
+        PROBED.add(domain)
 
-    last_reason = "nem található"
+    search_ok = False  # some search answered
     for method, template in methods:
         try:
+            got_any = False
             for query, by_ean in queries:
                 cands = run_search(session, method, template, domain, query, product, timeout, by_ean)
-                if not (site and site.get("search_template") == template):
-                    cache.set_site(domain, method, template)  # this search works on this site
-                    site = cache.get_site(domain)
-                for cand in cands:
-                    owner = cache.url_owner(domain, cand["url"])
-                    if owner and owner != (product.get("ean") or product["name"]):
-                        continue  # this page already belongs to another product
-                    try:
-                        v = verify_candidate(session, cand, product, competitor, timeout, retries)
-                    except FetchError:
-                        continue
-                    if v:
-                        return "found", cand["url"], v
-            return "not_sold", None, "nem árulja (a kereső működik, de nincs egyező termék)"
+                search_ok = True
+                if cands:
+                    got_any = True
+                    if not site.get("search_verified") or site.get("search_template") != template:
+                        cache.set_site(domain, method, template, verified=True)
+                        site = cache.get_site(domain)
+                v = _check_candidates(session, cands, product, competitor, cache, timeout, retries)
+                if v:
+                    return "found", _found_url(cands, v), v
+            if got_any:
+                break  # this search returns results on this shop: trust its "nothing matched"
+            if not site.get("search_template"):
+                cache.set_site(domain, method, template, verified=False)  # answers, but unproven
+                site = cache.get_site(domain)
         except SearchUnsupported:
             continue
         except FetchError as e:
+            if e.status in (404, 405, 410):
+                continue
             # blocked (403/429) or network trouble: try again next run, cache nothing
             return "blocked", None, f"keresés hiba: {e}"
+
+    # sitemap fallback: shops whose search runs in JavaScript, or lists variants under one product.
+    # Not over the browser: a sitemap there would cost a lot of residential traffic.
+    try:
+        cands = [] if access_mode(domain) == "browser" else sitemap_candidates(session, product, domain, timeout)
+    except FetchError as e:
+        cands = []
+        if e.status in (403, 429):
+            return "blocked", None, f"sitemap hiba: {e}"
+    if cands:
+        v = _check_candidates(session, cands, product, competitor, cache, timeout, retries)
+        if v:
+            return "found", _found_url(cands, v), v
+    if search_ok or cands or SITEMAPS.get(domain):
+        return "not_sold", None, "nem árulja (keresés és sitemap alapján sincs egyező termék)"
     if not competitor.get("search_url"):
-        cache.set_site(domain, "none", None)  # don't probe all URLs again for a while
-    return "no_search", None, ("nem találtam működő keresőt ezen az oldalon, "
+        cache.set_site(domain, "none", None)
+    return "no_search", None, ("nem találtam működő keresőt és sitemapot ezen az oldalon, "
                                "add meg a search_url oszlopot a competitors munkalapon")
+
+
+def _found_url(cands, v):
+    return v.get("url") or cands[0]["url"]
 
 
 def price_for_known_url(session, url, product, competitor, timeout, retries):

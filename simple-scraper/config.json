@@ -23,6 +23,6 @@
     "research_not_found_after_days": 14,
     "max_minutes_per_run": 100,
     "browser_fallback": true,
-    "sitemap_max_mb_paid": 20
+    "sitemap_max_mb_paid": 50
   }
 }

@@ -978,9 +978,25 @@ def run_search(session, method, template, domain, query, product, timeout, by_ea
     # html search page: it only "exists" if it answered with a page that echoes the query
     if "text/html" not in resp.headers.get("Content-Type", "text/html"):
         raise SearchUnsupported("not html")
-    if query.lower() not in resp.text.lower() and quote_plus(query).lower() not in resp.url.lower():
-        raise SearchUnsupported("search page does not echo query")
-    return [{"url": u} for u in candidates_from_html(resp.text, resp.url, domain, product, by_ean)]
+    cands = candidates_from_html(resp.text, resp.url, domain, product, by_ean)
+    if not echoes_query(resp.text, query):
+        # some result pages don't print the query; for a name search, links that look like
+        # our product (name score >= 0.5, already filtered) still show the search worked
+        if by_ean or not cands:
+            raise SearchUnsupported("search page does not show the query")
+    return [{"url": u} for u in cands]
+
+
+def echoes_query(html, query):
+    """A real result page says what was searched in its visible text ("Zoekresultaten voor ...",
+    "0 results for ..."). The query only sitting in a canonical link, the search box or a
+    tracking script is not enough: a home page that ignores ?s= would pass that test."""
+    soup = BeautifulSoup(html, "lxml")
+    for t in soup.find_all(["script", "style", "noscript", "head", "input", "textarea", "select", "template"]):
+        t.decompose()
+    text = " ".join(soup.get_text(" ").split()).lower()
+    q = " ".join(str(query).split()).lower()
+    return q in text
 
 
 # ================================================================ verification
@@ -1197,7 +1213,7 @@ def _locs(xml_text):
     return [u.strip() for u in re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", xml_text)]
 
 
-SITEMAP_PAID_MB = 20.0  # max sitemap MB per shop over proxy/browser (config: sitemap_max_mb_paid)
+SITEMAP_PAID_MB = 50.0  # max sitemap MB per shop over proxy/browser (config: sitemap_max_mb_paid)
 SITEMAP_BYTES = {}
 
 
@@ -1216,10 +1232,56 @@ def _fetch_text(session, url, timeout):
     return resp.text
 
 
+SITEMAP_CACHE_DAYS = 7
+
+
+def _sb():
+    cache = CACHE_REF.get("cache")
+    return cache.sb if cache is not None else None
+
+
+def _load_saved_sitemap(domain):
+    sb = _sb()
+    if not sb:
+        return None
+    try:
+        rows = sb.table("site_sitemaps").select("*").eq("domain", domain).execute().data
+    except Exception:
+        return None
+    if not rows:
+        return None
+    row = rows[0]
+    when = datetime.fromisoformat(str(row["fetched_at"]).replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) - when > timedelta(days=SITEMAP_CACHE_DAYS):
+        return None
+    urls = [u for u in (row.get("urls") or "").split("\n") if u]
+    return urls or None
+
+
+def _save_sitemap(domain, urls):
+    sb = _sb()
+    if not sb or not urls:
+        return
+    try:
+        sb.table("site_sitemaps").upsert({"domain": domain, "urls": "\n".join(urls), "url_count": len(urls),
+                                          "fetched_at": datetime.now(timezone.utc).isoformat()},
+                                         on_conflict="domain").execute()
+    except Exception as e:
+        print(f"FIGYELEM: a(z) {domain} sitemap mentése nem sikerült: {e}")
+
+
 def sitemap_urls(session, domain, timeout):
-    """All page URLs from the shop's sitemaps (product sitemaps first). Cached per run."""
+    """All page URLs from the shop's sitemaps (product sitemaps first). Cached per run, and in
+    Supabase for SITEMAP_CACHE_DAYS when the shop is reached over the paid proxy/browser."""
     if domain in SITEMAPS:
         return SITEMAPS[domain]
+    paid = access_mode(domain) != "direct" or BROWSER.needs(domain)
+    if paid:
+        saved = _load_saved_sitemap(domain)
+        if saved:
+            SITEMAPS[domain] = saved
+            print(f"  > {domain} sitemap a mentésből: {len(saved)} oldal")
+            return saved
     roots = []
     try:
         robots = _fetch_text(session, f"https://{domain}/robots.txt", timeout)
@@ -1261,6 +1323,8 @@ def sitemap_urls(session, domain, timeout):
             urls += locs
     urls = [u for u in urls if _same_site(u, domain) and not u.lower().endswith((".jpg", ".png", ".webp", ".xml"))]
     SITEMAPS[domain] = urls
+    if paid and urls and SITEMAP_BYTES.get(domain, 0) / 1_000_000 < SITEMAP_PAID_MB:
+        _save_sitemap(domain, urls)  # complete download only; a cut-off list would hide products
     print(f"  > {domain} sitemap: {len(urls)} oldal")
     return urls
 

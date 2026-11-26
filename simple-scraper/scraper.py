@@ -65,6 +65,8 @@ def get_supabase_client(config) -> Client | None:
     if not url or not key:
         print("FIGYELEM: nincs Supabase URL/KEY, csak CSV mentés és helyi cache lesz.")
         return None
+    # the dashboard often shows the URL with /rest/v1/ at the end; the client adds that itself
+    url = re.sub(r"/(rest|auth|storage)/v1/?$", "", url.strip()).rstrip("/")
     # format checks (values themselves are never printed)
     problems = []
     if not re.fullmatch(r"https://[a-z0-9]{20}\.supabase\.co/?", url):

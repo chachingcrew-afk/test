@@ -228,7 +228,7 @@ def access_mode(domain):
     return ACCESS.get(domain, SESSIONS.get("default_mode", "direct"))
 
 
-def escalate(domain):
+def escalate_domain(domain):
     """Move a shop one level up after it blocked us. Returns the new mode or None."""
     mode = access_mode(domain)
     nxt = None
@@ -416,13 +416,34 @@ class FetchError(RuntimeError):
         self.status = status
 
 
-def fetch(session, url, timeout, retries, expect_json=False):
-    """session is ignored when SESSIONS is set up (main); kept for tests."""
+LAST_HIT = {}       # domain -> time of the last request
+CRAWL_DELAY = {}    # domain -> seconds, from robots.txt
+
+
+def _polite_wait(domain):
+    """Respect the shop's robots.txt Crawl-delay (max 10 s) between our requests."""
+    delay = min(CRAWL_DELAY.get(domain, 0), 10)
+    if delay and domain in LAST_HIT:
+        wait = delay - (time.monotonic() - LAST_HIT[domain])
+        if wait > 0:
+            time.sleep(wait)
+    LAST_HIT[domain] = time.monotonic()
+
+
+def escalate_ok(flag):
+    return flag
+
+
+def fetch(session, url, timeout, retries, expect_json=False, escalate=True):
+    """session is ignored when SESSIONS is set up (main); kept for tests.
+    escalate=False: a block (403/429) is reported as an error instead of moving the whole
+    shop to the proxy or browser. Used for search pages, which shops often protect alone."""
     domain = _domain_of(url)
     if access_mode(domain) == "browser" or BROWSER.needs(domain):
         return BROWSER.get(url, timeout)
     last_err, last_status = None, None
     for attempt in range(1, retries + 1):
+        _polite_wait(domain)
         mode = access_mode(domain)
         if mode == "browser":
             return BROWSER.get(url, timeout)
@@ -435,9 +456,11 @@ def fetch(session, url, timeout, retries, expect_json=False):
                 resp.status_code != 503 or looks_like_challenge(resp.text))
             if resp.status_code == 200 and not expect_json and looks_like_challenge(resp.text):
                 blocked = True
+            if blocked and not escalate_ok(escalate):
+                raise FetchError(f"HTTP {resp.status_code} (keresés blokkolva)", resp.status_code if resp.status_code != 200 else 403)
             if blocked:
-                if SESSIONS and escalate(domain):
-                    return fetch(session, url, timeout, retries, expect_json)
+                if SESSIONS and escalate_domain(domain):
+                    return fetch(session, url, timeout, retries, expect_json, escalate)
                 if not SESSIONS and BROWSER.enabled and not BROWSER.needs(domain):
                     BROWSER.mark(domain, CACHE_REF.get("cache"))
                     return BROWSER.get(url, timeout)
@@ -804,7 +827,7 @@ def run_search(session, method, template, domain, query, product, timeout, by_ea
     Raises SearchUnsupported if this search method does not exist on the site."""
     url = template.format(d=domain, q=quote_plus(query))
     try:
-        resp = fetch(session, url, timeout, 1, expect_json=method != "html")
+        resp = fetch(session, url, timeout, 1, expect_json=method != "html", escalate=False)
     except FetchError as e:
         if e.status in (404, 405, 410, 400, 401):
             raise SearchUnsupported(str(e))
@@ -1025,6 +1048,9 @@ def sitemap_urls(session, domain, timeout):
     try:
         robots = _fetch_text(session, f"https://{domain}/robots.txt", timeout)
         roots += re.findall(r"(?im)^\s*sitemap:\s*(\S+)", robots)
+        m = re.search(r"(?is)user-agent:\s*\*.*?crawl-delay:\s*([\d.]+)", robots)
+        if m:
+            CRAWL_DELAY[domain] = float(m.group(1))
     except Exception:
         pass
     roots += [f"https://{domain}/sitemap.xml", f"https://{domain}/sitemap_index.xml"]
@@ -1064,6 +1090,11 @@ def sitemap_candidates(session, product, domain, timeout, limit=5):
     urls = sitemap_urls(session, domain, timeout)
     if not urls:
         return []
+    ean = product.get("ean")
+    if ean:
+        by_ean = [u for u in urls if any(v in u for v in ean_variants(ean) if len(v) >= 12)]
+        if by_ean:  # some shops put the EAN in the product URL
+            return [{"url": u, "via": "sitemap-ean"} for u in by_ean[:limit]]
     ours = set(tokens(product["name"])) - set(tokens(product.get("brand") or ""))
     scored = []
     for u in urls:
@@ -1123,6 +1154,7 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
         PROBED.add(domain)
 
     search_ok = False  # some search answered
+    search_blocked = False
     for method, template in methods:
         try:
             got_any = False
@@ -1147,13 +1179,17 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
         except FetchError as e:
             if e.status in (404, 405, 410):
                 continue
-            # blocked (403/429) or network trouble: try again next run, cache nothing
+            if e.status in (403, 429):
+                search_blocked = True
+                break  # the shop protects its search: use the sitemap below
+            # network trouble: try again next run, cache nothing
             return "blocked", None, f"keresés hiba: {e}"
 
     # sitemap fallback: shops whose search runs in JavaScript, or lists variants under one product.
     # Not over the browser: a sitemap there would cost a lot of residential traffic.
     try:
-        cands = [] if access_mode(domain) == "browser" else sitemap_candidates(session, product, domain, timeout)
+        # sitemaps can be tens of MB: only over the free direct connection
+        cands = sitemap_candidates(session, product, domain, timeout) if access_mode(domain) == "direct" else []
     except FetchError as e:
         cands = []
         if e.status in (403, 429):
@@ -1164,6 +1200,8 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
             return "found", _found_url(cands, v), v
     if search_ok or cands or SITEMAPS.get(domain):
         return "not_sold", None, "nem árulja (keresés és sitemap alapján sincs egyező termék)"
+    if search_blocked:
+        return "blocked", None, "a kereső blokkol, és sitemap sem érhető el"
     if not competitor.get("search_url"):
         cache.set_site(domain, "none", None)
     return "no_search", None, ("nem találtam működő keresőt és sitemapot ezen az oldalon, "

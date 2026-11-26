@@ -459,9 +459,28 @@ def page_eans(soup):
 
 
 def ean_on_page(html, ean):
+    """EAN shown as part of the product itself. Ignores places where our own
+    search term can be echoed back (search box, 'recent searches', tracking
+    scripts), because those made a wrong page look like a match."""
     if not ean:
         return False
-    found = set(re.findall(r"(?<!\d)\d{8,14}(?!\d)", html))
+    soup = BeautifulSoup(html, "lxml")
+    declared = page_eans(soup)
+    if declared:
+        return bool(declared & ean_variants(ean))
+    for t in soup.find_all(["script", "style", "noscript", "input", "form", "textarea", "select", "header", "nav"]):
+        if t.name == "script" and (t.get("type") or "").lower() == "application/ld+json":
+            continue
+        t.decompose()
+    for t in soup.find_all(True):
+        if t.attrs is None:
+            continue
+        marker = " ".join(t.get("class", []) if isinstance(t.get("class"), list) else [str(t.get("class") or "")])
+        marker = (marker + " " + str(t.get("id") or "")).lower()
+        if any(w in marker for w in ("search", "zoek", "recent", "history", "autocomplete", "suggest")):
+            t.decompose()
+    text = soup.get_text(" ")
+    found = set(re.findall(r"(?<!\d)\d{8,14}(?!\d)", text))
     return bool(found & ean_variants(ean))
 
 
@@ -847,6 +866,14 @@ class Cache:
         self.urls[(key, domain)] = row
         self.dirty_urls[(key, domain)] = row
 
+    def url_owner(self, domain, url):
+        """Which product (EAN) is this page already linked to on this domain."""
+        u = strip_query(url)
+        for (key, d), row in self.urls.items():
+            if d == domain and row.get("url") and strip_query(row["url"]) == u:
+                return key
+        return None
+
     def get_site(self, domain):
         return self.sites.get(domain)
 
@@ -913,6 +940,9 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
                     cache.set_site(domain, method, template)  # this search works on this site
                     site = cache.get_site(domain)
                 for cand in cands:
+                    owner = cache.url_owner(domain, cand["url"])
+                    if owner and owner != (product.get("ean") or product["name"]):
+                        continue  # this page already belongs to another product
                     try:
                         v = verify_candidate(session, cand, product, competitor, timeout, retries)
                     except FetchError:

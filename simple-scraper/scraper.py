@@ -310,9 +310,15 @@ class BrowserFallback:
     def get(self, url, timeout):
         if not self._start():
             raise FetchError("böngésző nem elérhető", 403)
-        page = self._context(_domain_of(url)).new_page()
         try:
-            resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout * 1000 + 15000)
+            page = self._context(_domain_of(url)).new_page()
+        except Exception as e:
+            raise FetchError(f"böngésző hiba: {type(e).__name__}", 403)
+        try:
+            try:
+                resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout * 1000 + 15000)
+            except Exception as e:
+                raise FetchError(f"böngésző hiba: {str(e).splitlines()[0][:120]}", 403)
             status = resp.status if resp else 0
             html = page.content()
             # wait for a bot check to finish (it reloads or redirects the page)

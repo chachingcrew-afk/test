@@ -34,6 +34,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Chrome for the fallback on sites that block normal requests (~1 min)
+      - name: Install browser
+        run: python -m playwright install --with-deps chromium
+
       - name: Run scraper
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

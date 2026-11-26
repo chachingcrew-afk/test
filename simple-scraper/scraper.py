@@ -90,6 +90,9 @@ def get_supabase_client(config) -> Client | None:
     return create_client(url.rstrip("/"), key)
 
 
+PROXY_PARTS = {}  # filled by get_proxies, used by the browser fallback
+
+
 def get_proxies(config):
     proxy_cfg = config.get("proxy", {})
     if not proxy_cfg.get("enabled", False):
@@ -117,6 +120,7 @@ def get_proxies(config):
     print(f"Webshare username formátum: {masked}")
     host = proxy_cfg.get("host", "p.webshare.io")
     port = proxy_cfg.get("port", 80)
+    PROXY_PARTS.update(host=host, port=port, base=base, country=country, password=password)
 
     proxy_url = f"http://{user}:{password}@{host}:{port}"
     return {"http": proxy_url, "https": proxy_url}
@@ -198,6 +202,160 @@ def load_competitors(path: Path) -> list[dict]:
 TRAFFIC = {"bytes": 0}  # rough proxy usage (response bodies only)
 
 
+# ================================================================ browser fallback (Playwright)
+
+CHALLENGE_MARKERS = ("cf-chl", "challenge-platform", "just a moment...", "captcha-delivery.com",
+                     "_incapsula_resource", "px-captcha", "checking your browser", "ddos-guard")
+# third-party scripts that bot checks need; every other third-party request is blocked
+CHALLENGE_HOSTS = ("cloudflare", "datadome", "captcha-delivery", "perimeterx", "px-cdn",
+                   "px-cloud", "akamai", "incapsula", "imperva", "hcaptcha", "recaptcha", "gstatic")
+BLOCKED_TYPES = {"image", "media", "font", "stylesheet", "manifest", "other"}
+
+
+def looks_like_challenge(text):
+    head = (text or "")[:20000].lower()
+    return any(m in head for m in CHALLENGE_MARKERS)
+
+
+def _domain_of(url):
+    return norm_domain(urlparse(url).netloc)
+
+
+class BrowserResponse:
+    """Same interface the scraper uses from curl_cffi responses."""
+
+    def __init__(self, status_code, text, url, content_type):
+        self.status_code, self.text, self.url = status_code, text, url
+        self.content = text.encode("utf-8", "ignore")
+        self.headers = {"Content-Type": content_type}
+
+    def json(self):
+        t = self.text.strip()
+        if t.startswith("<"):  # Chrome shows JSON wrapped in <pre>
+            pre = BeautifulSoup(t, "lxml").find("pre")
+            t = pre.get_text() if pre else BeautifulSoup(t, "lxml").get_text()
+        return json.loads(t)
+
+
+class BrowserFallback:
+    """Real Chrome (Playwright), started only when a site blocks us.
+    One context per domain with a sticky proxy IP, so the cookie a bot check
+    hands out stays valid. Images, fonts, CSS and third-party trackers are blocked."""
+
+    def __init__(self, enabled=True):
+        self.enabled = enabled
+        self.pw = self.browser = None
+        self.contexts = {}
+        self.domains = set()      # domains that need the browser in this run
+        self.failed_start = False
+
+    def needs(self, domain):
+        return self.enabled and domain in self.domains
+
+    def mark(self, domain, cache=None):
+        if self.enabled and domain not in self.domains:
+            self.domains.add(domain)
+            print(f"  > {domain} blokkol, mostantól böngészővel (Playwright) próbálom")
+            if cache is not None:
+                cache.mark_browser(domain)
+
+    def _start(self):
+        if self.browser or self.failed_start:
+            return self.browser is not None
+        try:
+            from playwright.sync_api import sync_playwright
+            self.pw = sync_playwright().start()
+            self.browser = self.pw.chromium.launch(
+                headless=True, args=["--disable-blink-features=AutomationControlled"])
+            return True
+        except Exception as e:
+            self.failed_start = True
+            print(f"FIGYELEM: a böngésző nem indult el ({e}), a blokkoló oldalakat kihagyom")
+            return False
+
+    def _context(self, domain):
+        if domain in self.contexts:
+            return self.contexts[domain]
+        opts = {"locale": "nl-NL", "timezone_id": "Europe/Amsterdam",
+                "viewport": {"width": 1366, "height": 850}}
+        if PROXY_PARTS:
+            # sticky session: {username}-{country}-{session id} keeps one IP for this domain
+            sid = random.randint(100000, 999999)
+            user = "-".join(x for x in (PROXY_PARTS["base"], PROXY_PARTS.get("country"), str(sid)) if x)
+            opts["proxy"] = {"server": f"http://{PROXY_PARTS['host']}:{PROXY_PARTS['port']}",
+                             "username": user, "password": PROXY_PARTS["password"]}
+        ctx = self.browser.new_context(**opts)
+        ctx.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
+        def route(r):
+            req = r.request
+            host = urlparse(req.url).netloc.lower()
+            same = _domain_of(req.url) == domain or host.endswith("." + domain)
+            if req.resource_type in BLOCKED_TYPES and not any(h in host for h in CHALLENGE_HOSTS):
+                return r.abort()
+            if not same and not any(h in host for h in CHALLENGE_HOSTS):
+                return r.abort()
+            return r.continue_()
+        ctx.route("**/*", route)
+
+        def count(resp):
+            try:
+                TRAFFIC["bytes"] += int(resp.headers.get("content-length") or 0)
+            except Exception:
+                pass
+        ctx.on("response", count)
+        self.contexts[domain] = ctx
+        return ctx
+
+    def get(self, url, timeout):
+        if not self._start():
+            raise FetchError("böngésző nem elérhető", 403)
+        page = self._context(_domain_of(url)).new_page()
+        try:
+            resp = page.goto(url, wait_until="domcontentloaded", timeout=timeout * 1000 + 15000)
+            status = resp.status if resp else 0
+            html = page.content()
+            # wait for a bot check to finish (it reloads or redirects the page)
+            waited = 0
+            while looks_like_challenge(html) and waited < 25:
+                page.wait_for_timeout(2500)
+                waited += 2.5
+                try:
+                    page.wait_for_load_state("domcontentloaded", timeout=5000)
+                except Exception:
+                    pass
+                html = page.content()
+            if looks_like_challenge(html):
+                raise FetchError("bot-ellenőrzés a böngészőben sem ment át", 403)
+            if waited:
+                status = 200  # challenge solved, the final page is the real one
+            ctype = "text/html"
+            try:
+                ctype = (resp.headers.get("content-type") or ctype) if resp and not waited else ctype
+            except Exception:
+                pass
+            if status != 200:
+                raise FetchError(f"HTTP {status} (böngésző)", status)
+            return BrowserResponse(200, html, page.url, ctype)
+        finally:
+            page.close()
+
+    def close(self):
+        try:
+            for c in self.contexts.values():
+                c.close()
+            if self.browser:
+                self.browser.close()
+            if self.pw:
+                self.pw.stop()
+        except Exception:
+            pass
+
+
+BROWSER = BrowserFallback()
+CACHE_REF = {}  # lets fetch() remember browser-only domains in the cache
+
+
 class FetchError(RuntimeError):
     def __init__(self, msg, status=None):
         super().__init__(msg)
@@ -205,12 +363,22 @@ class FetchError(RuntimeError):
 
 
 def fetch(session, url, timeout, retries, expect_json=False):
+    domain = _domain_of(url)
+    if BROWSER.needs(domain):
+        return BROWSER.get(url, timeout)
     last_err, last_status = None, None
     for attempt in range(1, retries + 1):
         try:
             headers = {"Accept": "application/json"} if expect_json else None
             resp = session.get(url, timeout=timeout, headers=headers)
             TRAFFIC["bytes"] += len(resp.content)
+            blocked = resp.status_code in (403, 429, 503) and (
+                resp.status_code != 503 or looks_like_challenge(resp.text))
+            if resp.status_code == 200 and not expect_json and looks_like_challenge(resp.text):
+                blocked = True
+            if blocked and BROWSER.enabled:
+                BROWSER.mark(domain, CACHE_REF.get("cache"))
+                return BROWSER.get(url, timeout)
             if resp.status_code == 200:
                 return resp
             last_err, last_status = f"HTTP {resp.status_code}", resp.status_code
@@ -677,10 +845,21 @@ class Cache:
         return self.sites.get(domain)
 
     def set_site(self, domain, method, template):
+        old = self.sites.get(domain) or {}
         row = {"domain": domain, "search_method": method, "search_template": template,
+               "needs_browser": bool(old.get("needs_browser")),
                "updated_at": datetime.now(timezone.utc).isoformat()}
         self.sites[domain] = row
         self.dirty_sites[domain] = row
+
+    def mark_browser(self, domain):
+        old = dict(self.sites.get(domain) or {"domain": domain, "search_method": None, "search_template": None})
+        old.update(needs_browser=True, updated_at=datetime.now(timezone.utc).isoformat())
+        self.sites[domain] = old
+        self.dirty_sites[domain] = old
+
+    def browser_domains(self):
+        return {d for d, r in self.sites.items() if r.get("needs_browser")}
 
     def flush(self):
         if self.sb:
@@ -946,8 +1125,14 @@ def main():
     competitors = load_competitors(products_file)
     proxies = get_proxies(config)
     supabase = get_supabase_client(config)
+    BROWSER.enabled = bool(s.get("browser_fallback", True))
     try:
         cache = Cache(supabase)
+        CACHE_REF["cache"] = cache
+        for d in cache.browser_domains():
+            BROWSER.domains.add(d)
+        if BROWSER.enabled and BROWSER.domains:
+            print(f"Böngészővel nyitott oldalak (korábban blokkoltak): {', '.join(sorted(BROWSER.domains))}")
     except Exception as e:
         sys.exit(f"HIBA: nem sikerült kapcsolódni a Supabase-hez ({type(e).__name__}: {e}).\n"
                  "  Ellenőrizd a SUPABASE_URL és SUPABASE_KEY secretet (price-tracker projekt).")
@@ -1009,6 +1194,7 @@ def main():
 
     saver.flush()
     save_failed = saver.failed
+    BROWSER.close()
 
     if not results:
         print(f"Nincs új eredmény ({skipped} kihagyva, mert nemrég kerestük és nem árulják).")

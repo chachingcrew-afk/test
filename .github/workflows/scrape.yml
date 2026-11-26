@@ -6,6 +6,20 @@ on:
   schedule:
     - cron: "7 6 * * *"   # UTC, 07:07 Dutch time in winter
   workflow_dispatch:
+    inputs:
+      only_domains:
+        description: "Csak ezek a shopok (vesszővel elválasztva, üres = mind)"
+        required: false
+        default: ""
+      only_eans:
+        description: "Csak ezek a termékek EAN szerint (vesszővel, üres = mind)"
+        required: false
+        default: ""
+      debug:
+        description: "Diagnosztika: a shopok válaszait elmenti a Supabase-be"
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: simple-scraper
@@ -45,6 +59,9 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           WEBSHARE_USER: ${{ secrets.WEBSHARE_USER }}
           WEBSHARE_PASS: ${{ secrets.WEBSHARE_PASS }}
+          ONLY_DOMAINS: ${{ github.event.inputs.only_domains }}
+          ONLY_EANS: ${{ github.event.inputs.only_eans }}
+          DEBUG_CAPTURE: ${{ github.event.inputs.debug }}
         # a virtual display, so the browser runs visibly (headless is easier to detect)
         run: xvfb-run --auto-servernum --server-args="-screen 0 1366x900x24" python scraper.py
 

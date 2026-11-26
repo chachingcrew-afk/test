@@ -483,6 +483,8 @@ class BrowserFallback:
                 except Exception:
                     pass
             html, waited = self._wait_challenge(page)
+            if DEBUG["on"]:
+                debug_save(url, status, html, f"browser:{self.engine}")
             if looks_like_challenge(html):
                 raise FetchError("bot-ellenőrzés a böngészőben sem ment át", 403)
             if waited:
@@ -524,6 +526,29 @@ class FetchError(RuntimeError):
         self.status = status
 
 
+DEBUG = {"on": os.getenv("DEBUG_CAPTURE", "").strip().lower() in ("1", "true", "yes"), "count": {}}
+
+
+def debug_save(url, status, body, via):
+    """DEBUG_CAPTURE=1: keep what the shop sent (first 400 KB) in Supabase debug_pages."""
+    if not DEBUG["on"]:
+        return
+    domain = _domain_of(url)
+    n = DEBUG["count"].get(domain, 0)
+    if n >= 30:
+        return
+    DEBUG["count"][domain] = n + 1
+    cache = CACHE_REF.get("cache")
+    sb = cache.sb if cache is not None else None
+    if not sb:
+        return
+    try:
+        sb.table("debug_pages").insert({"domain": domain, "url": url[:2000], "status": status, "via": via,
+                                        "body": (body or "")[:400_000]}).execute()
+    except Exception as e:
+        print(f"debug mentés hiba: {e}")
+
+
 LAST_HIT = {}       # domain -> time of the last request
 CRAWL_DELAY = {}    # domain -> seconds, from robots.txt
 
@@ -560,6 +585,8 @@ def fetch(session, url, timeout, retries, expect_json=False, escalate=True):
             headers = {"Accept": "application/json"} if expect_json else None
             resp = sess.get(url, timeout=timeout, headers=headers)
             TRAFFIC["bytes" if mode == "proxy" else "direct"] += len(resp.content)
+            if DEBUG["on"]:
+                debug_save(url, resp.status_code, resp.text, mode)
             blocked = resp.status_code in (403, 429, 503) and (
                 resp.status_code != 503 or looks_like_challenge(resp.text))
             if resp.status_code == 200 and not expect_json and looks_like_challenge(resp.text):
@@ -1483,7 +1510,7 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
             return "not_sold", None, "nem árulja (böngészős keresés alapján)"
         except (SearchUnsupported, FetchError) as e:
             return "blocked", None, f"a kereső és a sitemap is blokkol ({e})"
-    if not competitor.get("search_url"):
+    if not competitor.get("search_url") and not site.get("search_verified"):
         cache.set_site(domain, "none", None)
     return "no_search", None, ("nem találtam működő keresőt és sitemapot ezen az oldalon, "
                                "add meg a search_url oszlopot a competitors munkalapon")
@@ -1693,6 +1720,16 @@ def main():
     products_file = Path(s.get("products_file", "products.xlsx"))
     products = load_products(products_file)
     competitors = load_competitors(products_file)
+    only_domains = {norm_domain(d) for d in os.getenv("ONLY_DOMAINS", "").replace(";", ",").split(",") if d.strip()}
+    if only_domains:
+        competitors = [c for c in competitors if c["domain"] in only_domains]
+        print(f"Csak ezek a shopok: {', '.join(sorted(only_domains))}")
+    only_eans = {e.strip() for e in os.getenv("ONLY_EANS", "").replace(";", ",").split(",") if e.strip()}
+    if only_eans:
+        products = [p for p in products if p.get("ean") in only_eans]
+        print(f"Csak ezek a termékek (EAN): {', '.join(sorted(only_eans))}")
+    if DEBUG["on"]:
+        print("Diagnosztika BE: a shopok válaszai a Supabase debug_pages táblába kerülnek")
     proxies = get_proxies(config)
     supabase = get_supabase_client(config)
     BROWSER.enabled = bool(s.get("browser_fallback", True))

@@ -262,9 +262,25 @@ def ean_on_page(html, ean):
     return bool(found & ean_variants(ean))
 
 
-def search_query_for_name(product):
-    name = re.sub(r"\(.*?\)", " ", product["name"])
-    return " ".join(name.split())
+def search_queries_for_name(product):
+    """Full name first, then a short version (brand + first 2 words).
+    Many shop searches need ALL words to match, so a long name like
+    'Liewood lunchbox Arthur Peach sea shell mix' finds nothing when the shop
+    calls it 'Arthur Lunchbox - Peach / Sea shell'. The match is still checked
+    strictly afterwards, so a shorter search query does not lower accuracy."""
+    name = " ".join(re.sub(r"\(.*?\)", " ", product["name"]).split())
+    brand = (product.get("brand") or "").strip()
+    words = [w for w in re.split(r"[\s\-/,]+", name) if w]
+    if brand:
+        bl = brand.lower().split()
+        words = [w for w in words if w.lower() not in bl]
+    words = [w for w in words if w.lower().strip(".") not in STOPWORDS]
+    short = " ".join(([brand] if brand else []) + words[:2]).strip()
+    out = []
+    for q in (name, short):
+        if q and q.lower() not in [o.lower() for o in out]:
+            out.append(q)
+    return out
 
 
 # ================================================================ price parsing
@@ -661,7 +677,7 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
     queries = []
     if product.get("ean"):
         queries.append((product["ean"], True))
-    queries.append((search_query_for_name(product), False))
+    queries.extend((q, False) for q in search_queries_for_name(product))
 
     site = cache.get_site(domain)
     if competitor.get("search_url"):

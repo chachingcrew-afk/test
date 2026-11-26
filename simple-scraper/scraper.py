@@ -169,6 +169,7 @@ def load_products(path: Path) -> list[dict]:
             "price_selector": _cell(row, "price_selector"),
             "currency": _cell(row, "currency") or "EUR",
             "our_price": clean_price(_cell(row, "our_price") or _cell(row, "prijs_(€)")),
+            "our_sale_price": clean_price(_cell(row, "our_sale_price") or _cell(row, "actieprijs_(€)")),
         })
     return products
 
@@ -180,6 +181,7 @@ def sync_products(supabase, products):
         if p.get("ean"):
             rows[p["ean"]] = {"ean": p["ean"], "name": p["name"], "brand": p.get("brand"),
                               "our_price": p.get("our_price"),
+                              "our_sale_price": p.get("our_sale_price"),
                               "updated_at": datetime.now(timezone.utc).isoformat()}
     if rows:
         supabase.table("products").upsert(list(rows.values()), on_conflict="ean").execute()

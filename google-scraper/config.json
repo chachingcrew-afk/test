@@ -12,7 +12,7 @@
     ],
     "batch_size": 40,
     "skip_hours": 40,
-    "searches_per_ip": 8,
+    "searches_per_ip": 40,
     "max_captcha_per_run": 4,
     "min_delay_seconds": 20,
     "max_delay_seconds": 45,

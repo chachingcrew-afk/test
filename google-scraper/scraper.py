@@ -343,6 +343,19 @@ async def is_captcha(page) -> bool:
     return any(m in content for m in CAPTCHA_MARKERS)
 
 
+DEBUG_HTML_LIMIT = 3
+_debug_html_count = 0
+
+
+def debug_db(supabase, url: str, via: str, body: str):
+    try:
+        supabase.table("debug_pages").insert({
+            "domain": SESSION_KEY, "url": url, "status": 200, "via": via, "body": body[:1_500_000],
+        }).execute()
+    except Exception as e:
+        print(f"     debug_pages mentés hiba: {str(e)[:120]}")
+
+
 async def dump_debug(page, ean: str, tag: str):
     try:
         DEBUG_DIR.mkdir(exist_ok=True)
@@ -440,9 +453,16 @@ async def search_shopping(session: GoogleSession, product: dict, settings: dict)
         except Exception:
             pass
 
-        raw = await page.evaluate(SHOPPING_JS, settings.get("max_shopping", 12) * 2)
-        items, dropped = [], 0
+        raw = await page.evaluate(SHOPPING_JS, settings.get("max_shopping", 12) * 3)
+        if settings.get("debug"):
+            debug_db(session.supabase, url, f"google-raw:{raw['mode']}",
+                     json.dumps({"product": product, "items": raw["items"]}, ensure_ascii=False))
+        items, dropped, seen = [], 0, set()
         for r in raw["items"]:
+            key = (_norm(r["title"]), r["price_text"], r["merchant"])
+            if key in seen:
+                continue
+            seen.add(key)
             if not is_relevant(r["title"], product):
                 dropped += 1
                 continue
@@ -462,7 +482,10 @@ async def search_shopping(session: GoogleSession, product: dict, settings: dict)
         result["status"] = "ok" if items else "no_results"
         if dropped:
             result["error"] = f"{dropped} nem releváns találat kiszűrve ({raw['mode']})"
-        if settings.get("debug") and (not items or raw["mode"] == "heuristic"):
+        global _debug_html_count
+        if settings.get("debug") and not items and _debug_html_count < DEBUG_HTML_LIMIT:
+            _debug_html_count += 1
+            debug_db(session.supabase, url, "google-html", await page.content())
             await dump_debug(page, query, f"shopping_{raw['mode']}")
     except Exception as e:
         result["error"] = str(e)[:500]
@@ -539,6 +562,7 @@ async def main():
     await session.ensure()
 
     stats = {"ok": 0, "no_results": 0, "captcha": 0, "error": 0}
+    captchas = 0
     try:
         for i, product in enumerate(todo, 1):
             print(f"\n[{i}/{len(todo)}] {product['name'][:60]} (EAN: {product['ean']})")
@@ -549,20 +573,26 @@ async def main():
 
             data = await search_shopping(session, product, settings)
             if data["status"] == "captcha":
-                stats["captcha"] += 1
-                print(f"  → CAPTCHA ({stats['captcha']}/{max_captcha})")
-                if stats["captcha"] >= max_captcha:
-                    print("Túl sok CAPTCHA ebben a futásban, leállok.")
-                    break
-                await session.new_identity("CAPTCHA")
-                await asyncio.sleep(random.uniform(20, 40))
-                data = await search_shopping(session, product, settings)   # egy újrapróbálás
-
+                captchas += 1
+                print(f"  → CAPTCHA ({captchas}/{max_captcha}), {session.used - 1} sikeres keresés után ezen az IP-n")
+                if captchas < max_captcha:
+                    await session.new_identity("CAPTCHA")
+                    await asyncio.sleep(random.uniform(20, 40))
+                    data = await search_shopping(session, product, settings)   # egy újrapróbálás
+                    if data["status"] == "captcha":
+                        captchas += 1
+                        print(f"  → újra CAPTCHA ({captchas}/{max_captcha})")
+                if data["status"] == "captcha" and captchas < max_captcha:
+                    await session.new_identity("CAPTCHA")
             stats[data["status"]] = stats.get(data["status"], 0) + 1
             print(f"  → {data['status'].upper()} | shopping: {len(data['shopping'])}"
                   + (f" | {data['error']}" if data.get("error") else ""))
             for it in data["shopping"][:3]:
                 print(f"     {it['price']} € | {it['merchant']} | {it['title'][:60]}")
+
+            if captchas >= max_captcha:
+                print("Túl sok CAPTCHA ebben a futásban, leállok.")
+                break
 
             if data["status"] != "captcha":
                 try:
@@ -577,7 +607,7 @@ async def main():
         await session.save()
         await session.close()
 
-    print(f"\n[{datetime.now().isoformat()}] Batch kész. {stats}")
+    print(f"\n[{datetime.now().isoformat()}] Batch kész. {stats} | CAPTCHA összesen: {captchas}")
 
 
 if __name__ == "__main__":

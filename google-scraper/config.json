@@ -3,8 +3,7 @@
     "enabled": true,
     "host": "p.webshare.io",
     "port": 80,
-    "country": "nl",
-    "rotate": true
+    "country": "nl"
   },
   "settings": {
     "products_file": [
@@ -13,13 +12,11 @@
     ],
     "batch_size": 40,
     "skip_hours": 40,
-    "min_delay_seconds": 9,
-    "max_delay_seconds": 22,
-    "max_organic": 8,
+    "searches_per_ip": 8,
+    "max_captcha_per_run": 4,
+    "min_delay_seconds": 20,
+    "max_delay_seconds": 45,
     "max_shopping": 12,
-    "headless": true,
-    "debug": true,
-    "locale": "nl-NL",
-    "timezone_id": "Europe/Amsterdam"
+    "debug": true
   }
 }

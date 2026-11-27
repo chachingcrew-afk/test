@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-Google.nl Scraper – Organic + Shopping
-Hollandia, Playwright + Webshare + Supabase
+Google.nl Shopping Scraper (EAN alapján)
+Patchright + valódi Chrome + Webshare NL sticky residential proxy + Supabase
+
+CAPTCHA csökkentés:
+- patchright + Chrome (xvfb-n látható módban), nem headless Chromium
+- egy holland IP (sticky session) több keresést szolgál ki, a cookie-k megmaradnak
+- a session (IP + cookie) Supabase-be mentve (browser_sessions, domain = google.nl)
+- termékenként csak egy keresés (shopping nézet), hosszú, véletlen szünetek
+- CAPTCHA esetén új IP, nem áll le azonnal
 """
 
 import asyncio
@@ -9,32 +16,24 @@ import json
 import os
 import random
 import re
+import unicodedata
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
 import pandas as pd
-from playwright.async_api import async_playwright, Browser, BrowserContext, Page
-from playwright_stealth import stealth_async
 from supabase import create_client, Client
 
 CONFIG_PATH = Path("config.json")
 DEBUG_DIR = Path("debug")
+SESSION_KEY = "google.nl"
 
-# Google EU consent megkerülése ("Alles afwijzen" állapot)
 SOCS_COOKIE = "CAESHAgBEhJnd3NfMjAyMzA4MTAtMF9SQzIaAmVuIAEaBgiAo_CmBg"
-
-CAPTCHA_MARKERS = [
-    "unusual traffic",
-    "ongebruikelijk verkeer",     # holland Google captcha szöveg
-    "id=\"captcha-form\"",
-    "g-recaptcha",
-]
-
-MAX_CONSECUTIVE_CAPTCHA = 3
+CAPTCHA_MARKERS = ["unusual traffic", "ongebruikelijk verkeer", 'id="captcha-form"', "g-recaptcha"]
+BLOCKED_TYPES = {"image", "media", "font"}
 
 
-# ---------------------------------------------------------------- config
+# ---------------------------------------------------------------- config / input
 
 def load_config() -> dict:
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
@@ -131,6 +130,7 @@ def get_already_scraped_eans(supabase: Client, hours: int = 40) -> set[str]:
     return eans
 
 
+
 # ---------------------------------------------------------------- helpers
 
 def clean_price(text: str) -> Optional[float]:
@@ -149,34 +149,29 @@ def clean_price(text: str) -> Optional[float]:
         return None
 
 
-async def is_captcha(page: Page) -> bool:
-    if "/sorry/" in page.url:
+
+def _norm(text: str) -> str:
+    text = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
+
+
+STOPWORDS = {"voor", "met", "van", "en", "de", "het", "een", "the", "and", "with", "stuks", "stuk", "set"}
+
+
+def is_relevant(title: str, product: dict) -> bool:
+    """A találat címe illik-e a termékhez (márka vagy a név fontos szavai)."""
+    t = _norm(title)
+    if not t:
+        return False
+    brand = _norm(product.get("brand", ""))
+    if brand and len(brand) >= 3 and brand in t:
         return True
-    content = (await page.content()).lower()
-    return any(m in content for m in CAPTCHA_MARKERS)
-
-
-async def handle_consent(page: Page):
-    """Ha a cookie ellenére a consent oldalra dob, nyomjuk meg az elutasítást."""
-    if "consent.google" not in page.url:
-        return
-    for label in ["Alles afwijzen", "Reject all", "Alles accepteren", "Accept all"]:
-        btn = page.get_by_role("button", name=label)
-        if await btn.count():
-            await btn.first.click()
-            await page.wait_for_load_state("domcontentloaded")
-            await asyncio.sleep(1)
-            return
-
-
-async def dump_debug(page: Page, ean: str, tag: str):
-    try:
-        DEBUG_DIR.mkdir(exist_ok=True)
-        base = DEBUG_DIR / f"{ean}_{tag}"
-        (base.with_suffix(".html")).write_text(await page.content(), encoding="utf-8")
-        await page.screenshot(path=str(base.with_suffix(".png")), full_page=True)
-    except Exception as e:
-        print(f"     debug mentés hiba: {e}")
+    words = [w for w in _norm(product.get("name", "")).split()
+             if len(w) >= 4 and not w.isdigit() and w not in STOPWORDS]
+    if not words:
+        return False
+    hits = sum(1 for w in words if w in t)
+    return hits >= 2 or hits / len(words) >= 0.5
 
 
 def build_proxy(proxy_cfg: dict) -> dict:
@@ -195,65 +190,171 @@ def build_proxy(proxy_cfg: dict) -> dict:
     return {"server": f"http://{host}:{port}", "username": user, "password": password}
 
 
-async def create_context(browser: Browser, config: dict) -> BrowserContext:
-    proxy_cfg = config.get("proxy", {})
-    settings = config.get("settings", {})
 
-    context_options = {
-        "locale": settings.get("locale", "nl-NL"),
-        "timezone_id": settings.get("timezone_id", "Europe/Amsterdam"),
-        "viewport": {"width": 1366, "height": 768},
-        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                      "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-    }
+# ---------------------------------------------------------------- browser session
 
-    if proxy_cfg.get("enabled"):
-        context_options["proxy"] = build_proxy(proxy_cfg)
+class GoogleSession:
+    """Egy böngésző, egy sticky proxy IP-vel és megmaradó cookie-kkal."""
 
-    context = await browser.new_context(**context_options)
+    def __init__(self, config: dict, supabase: Client):
+        self.config = config
+        self.supabase = supabase
+        self.pw = self.browser = self.context = None
+        self.engine = None
+        self.sid = None
+        self.cookies = []
+        self.used = 0
 
-    # Proxy adatforgalom spórolás: képek, fontok, videók nem kellenek
-    async def block_heavy(route):
-        if route.request.resource_type in ("image", "media", "font"):
-            await route.abort()
-        else:
-            await route.continue_()
-    await context.route("**/*", block_heavy)
+    # ---- Supabase-ben tárolt session
+    def load(self):
+        try:
+            rows = self.supabase.table("browser_sessions").select("*").eq("domain", SESSION_KEY).execute().data
+            if rows:
+                self.sid = rows[0].get("proxy_session")
+                self.cookies = rows[0].get("cookies") or []
+                print(f"Mentett Google session betöltve (sid {self.sid}, {len(self.cookies)} cookie)")
+        except Exception as e:
+            print(f"Figyelem: a mentett session nem töltődött be: {e}")
 
-    await context.add_cookies([
-        {"name": "SOCS", "value": SOCS_COOKIE, "domain": ".google.nl", "path": "/"},
-        {"name": "CONSENT", "value": "PENDING+987", "domain": ".google.nl", "path": "/"},
-    ])
-    return context
+    async def save(self):
+        if not self.context:
+            return
+        try:
+            self.cookies = await self.context.cookies()
+            self.supabase.table("browser_sessions").upsert({
+                "domain": SESSION_KEY,
+                "proxy_session": self.sid,
+                "cookies": self.cookies,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }, on_conflict="domain").execute()
+        except Exception as e:
+            print(f"Figyelem: a session mentése nem sikerült: {e}")
+
+    # ---- böngésző
+    async def start(self):
+        headful = bool(os.environ.get("DISPLAY"))
+        attempts = []
+        try:
+            from patchright.async_api import async_playwright as patch_pw
+            attempts.append(("patchright+chrome", patch_pw, {"channel": "chrome", "headless": not headful}))
+            attempts.append(("patchright+chromium", patch_pw, {"headless": not headful}))
+        except ImportError:
+            pass
+        for name, factory, opts in attempts:
+            try:
+                self.pw = await factory().start()
+                self.browser = await self.pw.chromium.launch(**opts)
+                self.engine = name
+                print(f"Böngésző: {name}{' (látható, virtuális kijelzőn)' if headful else ' (headless)'}")
+                return
+            except Exception as e:
+                print(f"{name} nem indult: {str(e).splitlines()[0][:150]}")
+                if self.pw:
+                    await self.pw.stop()
+                self.pw = self.browser = None
+        raise SystemExit("HIBA: nem indult el a böngésző")
+
+    async def new_identity(self, reason: str = ""):
+        """Új holland IP és tiszta cookie-k."""
+        if reason:
+            print(f"  ↻ új IP ({reason})")
+        await self._close_context()
+        self.sid = str(random.randint(100000, 999999))
+        self.cookies = []
+        await self._open_context()
+
+    async def ensure(self):
+        if not self.context:
+            if not self.sid:
+                self.sid = str(random.randint(100000, 999999))
+            await self._open_context()
+
+    async def _open_context(self):
+        opts = {"locale": "nl-NL", "timezone_id": "Europe/Amsterdam", "no_viewport": True}
+        proxy_cfg = self.config.get("proxy", {})
+        if proxy_cfg.get("enabled"):
+            p = build_proxy({**proxy_cfg, "rotate": False})
+            # sticky: {user}-{country}-{sid} = ugyanaz az IP a session alatt
+            p["username"] = f"{p['username']}-{self.sid}"
+            opts["proxy"] = p
+        self.context = await self.browser.new_context(**opts)
+
+        async def route(r):
+            if r.request.resource_type in BLOCKED_TYPES:
+                await r.abort()
+            else:
+                await r.continue_()
+        await self.context.route("**/*", route)
+
+        base = [{"name": "SOCS", "value": SOCS_COOKIE, "domain": ".google.nl", "path": "/"}]
+        try:
+            await self.context.add_cookies(self.cookies or base)
+        except Exception:
+            await self.context.add_cookies(base)
+        self.used = 0
+        await self._warm_up()
+
+    async def _warm_up(self):
+        """Főoldal megnyitása, mint egy valódi látogató."""
+        page = await self.context.new_page()
+        try:
+            await page.goto("https://www.google.nl/?hl=nl", wait_until="domcontentloaded", timeout=45000)
+            await handle_consent(page)
+            await page.wait_for_timeout(random.randint(1500, 3500))
+            await page.mouse.move(random.randint(200, 900), random.randint(150, 500))
+            await page.wait_for_timeout(random.randint(600, 1500))
+        except Exception as e:
+            print(f"  warm-up hiba: {str(e)[:120]}")
+        finally:
+            await page.close()
+
+    async def _close_context(self):
+        if self.context:
+            try:
+                await self.context.close()
+            except Exception:
+                pass
+        self.context = None
+
+    async def close(self):
+        await self._close_context()
+        if self.browser:
+            await self.browser.close()
+        if self.pw:
+            await self.pw.stop()
+
+
+async def handle_consent(page):
+    if "consent.google" not in page.url:
+        return
+    for label in ["Alles afwijzen", "Reject all", "Alles accepteren", "Accept all"]:
+        btn = page.get_by_role("button", name=label)
+        if await btn.count():
+            await btn.first.click()
+            await page.wait_for_load_state("domcontentloaded")
+            await asyncio.sleep(1)
+            return
+
+
+async def is_captcha(page) -> bool:
+    if "/sorry/" in page.url:
+        return True
+    content = (await page.content()).lower()
+    return any(m in content for m in CAPTCHA_MARKERS)
+
+
+async def dump_debug(page, ean: str, tag: str):
+    try:
+        DEBUG_DIR.mkdir(exist_ok=True)
+        base = DEBUG_DIR / f"{ean}_{tag}"
+        base.with_suffix(".html").write_text(await page.content(), encoding="utf-8")
+        await page.screenshot(path=str(base.with_suffix(".png")), full_page=True)
+    except Exception as e:
+        print(f"     debug mentés hiba: {e}")
 
 
 # ---------------------------------------------------------------- extract
 
-ORGANIC_JS = r"""
-(max) => {
-  const out = [], seen = new Set();
-  const anchors = document.querySelectorAll('#rso a:has(h3), #search a:has(h3)');
-  for (const a of anchors) {
-    const href = a.href || '';
-    if (!href.startsWith('http')) continue;
-    try { if (new URL(href).hostname.includes('google.')) continue; } catch (e) { continue; }
-    if (seen.has(href)) continue;
-    seen.add(href);
-    const block = a.closest('div.MjjYud, div.g, div[data-hveid]');
-    const sn = block && block.querySelector('div.VwiC3b, div[data-sncf], div[style*="-webkit-line-clamp"]');
-    out.push({
-      title: a.querySelector('h3').innerText.trim(),
-      link: href,
-      snippet: sn ? sn.innerText.trim() : null,
-    });
-    if (out.length >= max) break;
-  }
-  return out;
-}
-"""
-
-# Google Shopping DOM-ja gyakran változik: először ismert kártya-szelektorok,
-# ha nincs találat, heurisztika: ár-szöveget tartalmazó, linkes, rövid blokkok.
 SHOPPING_JS = r"""
 (max) => {
   const priceRe = /€\s?\d[\d.]*(,\d{2})?|\d[\d.]*,\d{2}\s?€/;
@@ -314,87 +415,60 @@ SHOPPING_JS = r"""
 """
 
 
-async def extract_organic(page: Page, max_items: int) -> list[dict]:
-    raw = await page.evaluate(ORGANIC_JS, max_items)
-    return [{
-        "result_type": "organic",
-        "position": i + 1,
-        "title": r["title"],
-        "price": None,
-        "currency": None,
-        "merchant": None,
-        "link": r["link"],
-        "snippet": r["snippet"],
-    } for i, r in enumerate(raw)]
 
-
-async def extract_shopping(page: Page, max_items: int) -> tuple[list[dict], str]:
-    raw = await page.evaluate(SHOPPING_JS, max_items)
-    items = [{
-        "result_type": "shopping",
-        "position": i + 1,
-        "title": r["title"][:500],
-        "price": clean_price(r["price_text"]),
-        "currency": "EUR",
-        "merchant": r["merchant"],
-        "link": r["link"],
-        "snippet": None,
-    } for i, r in enumerate(raw["items"])]
-    return items, raw["mode"]
-
-
-# ---------------------------------------------------------------- scrape
-
-async def goto_google(page: Page, url: str):
-    await page.goto(url, wait_until="domcontentloaded", timeout=45000)
-    await handle_consent(page)
-    await asyncio.sleep(random.uniform(1.5, 3.5))
-
-
-async def scrape_product(page: Page, product: dict, config: dict) -> dict:
-    settings = config["settings"]
-    debug = settings.get("debug", False)
-    query = product["ean"]  # EAN a legpontosabb
-
+async def search_shopping(session: GoogleSession, product: dict, settings: dict) -> dict:
+    query = product["ean"]
     result = {
-        "code": product["code"],
-        "ean": product["ean"],
-        "name": product["name"],
-        "query": query,
-        "status": "error",
-        "error": None,
-        "organic": [],
-        "shopping": [],
+        "code": product["code"], "ean": product["ean"], "name": product["name"],
+        "query": query, "status": "error", "error": None, "organic": [], "shopping": [],
     }
-
+    page = await session.context.new_page()
     try:
-        # Organikus
-        await goto_google(page, f"https://www.google.nl/search?q={query}&hl=nl&gl=nl")
+        url = f"https://www.google.nl/search?q={query}&udm=28&hl=nl&gl=nl"
+        await page.goto(url, wait_until="domcontentloaded", timeout=45000)
+        await handle_consent(page)
+        await page.wait_for_timeout(random.randint(1800, 3500))
+        session.used += 1
+
         if await is_captcha(page):
-            result["status"], result["error"] = "captcha", "CAPTCHA (organic)"
+            result["status"], result["error"] = "captcha", "CAPTCHA"
             return result
 
-        result["organic"] = await extract_organic(page, settings.get("max_organic", 8))
-        if debug and not result["organic"]:
-            await dump_debug(page, query, "organic")
+        try:
+            await page.mouse.wheel(0, random.randint(300, 800))
+            await page.wait_for_timeout(random.randint(500, 1200))
+        except Exception:
+            pass
 
-        # Shopping fül (udm=28 az új shopping nézet, a tbm=shop elavult)
-        await goto_google(page, f"https://www.google.nl/search?q={query}&udm=28&hl=nl&gl=nl")
-        if await is_captcha(page):
-            result["status"], result["error"] = "captcha", "CAPTCHA (shopping)"
-            return result
-
-        shopping, mode = await extract_shopping(page, settings.get("max_shopping", 12))
-        result["shopping"] = shopping
-        if debug and (not shopping or mode == "heuristic"):
-            await dump_debug(page, query, f"shopping_{mode}")
-
-        result["status"] = "ok" if (result["organic"] or shopping) else "no_results"
-
+        raw = await page.evaluate(SHOPPING_JS, settings.get("max_shopping", 12) * 2)
+        items, dropped = [], 0
+        for r in raw["items"]:
+            if not is_relevant(r["title"], product):
+                dropped += 1
+                continue
+            items.append({
+                "result_type": "shopping",
+                "position": len(items) + 1,
+                "title": r["title"][:500],
+                "price": clean_price(r["price_text"]),
+                "currency": "EUR",
+                "merchant": r["merchant"],
+                "link": r["link"],
+                "snippet": None,
+            })
+            if len(items) >= settings.get("max_shopping", 12):
+                break
+        result["shopping"] = items
+        result["status"] = "ok" if items else "no_results"
+        if dropped:
+            result["error"] = f"{dropped} nem releváns találat kiszűrve ({raw['mode']})"
+        if settings.get("debug") and (not items or raw["mode"] == "heuristic"):
+            await dump_debug(page, query, f"shopping_{raw['mode']}")
     except Exception as e:
         result["error"] = str(e)[:500]
         result["status"] = "error"
-
+    finally:
+        await page.close()
     return result
 
 
@@ -439,72 +513,69 @@ async def main():
     settings = config["settings"]
     batch_size = int(os.getenv("BATCH_SIZE") or settings.get("batch_size", 40))
     skip_hours = settings.get("skip_hours", 40)
+    per_ip = settings.get("searches_per_ip", 8)
+    max_captcha = settings.get("max_captcha_per_run", 4)
 
-    print(f"[{datetime.now().isoformat()}] Google scraper indult")
+    print(f"[{datetime.now().isoformat()}] Google shopping scraper indult")
 
     products_file = resolve_products_file(settings["products_file"])
     products = load_products(products_file)
-    print(f"Összesen {len(products)} termék az Excelben ({products_file})")
+    print(f"Összesen {len(products)} termék ({products_file})")
 
     supabase = get_supabase(config)
     already = get_already_scraped_eans(supabase, hours=skip_hours)
-    print(f"Már scrapelve (utolsó {skip_hours} óra): {len(already)} db")
+    print(f"Már kész (utolsó {skip_hours} óra): {len(already)} db")
 
-    todo = [p for p in products if p["ean"] not in already][:batch_size]
+    todo = [p for p in products if p["ean"] not in already]
+    random.shuffle(todo)
+    todo = todo[:batch_size]
     print(f"Mostani batch: {len(todo)} termék")
     if not todo:
-        print("Nincs több teendő termék. Kilépés.")
         return
 
-    if config.get("proxy", {}).get("enabled"):
-        u = build_proxy(config["proxy"])["username"]
-        print(f"Proxy: {u[:2]}***{u[u.find('-'):] if '-' in u else ''}")
+    session = GoogleSession(config, supabase)
+    session.load()
+    await session.start()
+    await session.ensure()
 
-    consecutive_captcha = 0
     stats = {"ok": 0, "no_results": 0, "captcha": 0, "error": 0}
-
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=settings.get("headless", True),
-            args=["--disable-blink-features=AutomationControlled"],
-        )
-
+    try:
         for i, product in enumerate(todo, 1):
             print(f"\n[{i}/{len(todo)}] {product['name'][:60]} (EAN: {product['ean']})")
 
-            context = await create_context(browser, config)
-            page = await context.new_page()
-            await stealth_async(page)
+            if session.used >= per_ip:
+                await session.save()
+                await session.new_identity(f"{per_ip} keresés után")
 
-            data = await scrape_product(page, product, config)
-            await context.close()
+            data = await search_shopping(session, product, settings)
+            if data["status"] == "captcha":
+                stats["captcha"] += 1
+                print(f"  → CAPTCHA ({stats['captcha']}/{max_captcha})")
+                if stats["captcha"] >= max_captcha:
+                    print("Túl sok CAPTCHA ebben a futásban, leállok.")
+                    break
+                await session.new_identity("CAPTCHA")
+                await asyncio.sleep(random.uniform(20, 40))
+                data = await search_shopping(session, product, settings)   # egy újrapróbálás
 
-            status = data["status"]
-            stats[status] = stats.get(status, 0) + 1
-            print(f"  → {status.upper()} | organic: {len(data['organic'])} | shopping: {len(data['shopping'])}")
-            if data.get("error"):
-                print(f"     Hiba: {data['error']}")
+            stats[data["status"]] = stats.get(data["status"], 0) + 1
+            print(f"  → {data['status'].upper()} | shopping: {len(data['shopping'])}"
+                  + (f" | {data['error']}" if data.get("error") else ""))
+            for it in data["shopping"][:3]:
+                print(f"     {it['price']} € | {it['merchant']} | {it['title'][:60]}")
 
-            try:
-                save_results(supabase, data)
-                print("  → Mentve Supabase-be")
-            except Exception as e:
-                print(f"  → Mentési hiba: {e}")
-
-            consecutive_captcha = consecutive_captcha + 1 if status == "captcha" else 0
-            if consecutive_captcha >= MAX_CONSECUTIVE_CAPTCHA:
-                print(f"\n{MAX_CONSECUTIVE_CAPTCHA} CAPTCHA egymás után, a batch leáll (a proxy IP-k le vannak tiltva).")
-                break
+            if data["status"] != "captcha":
+                try:
+                    save_results(supabase, data)
+                except Exception as e:
+                    print(f"  → Mentési hiba: {e}")
 
             if i < len(todo):
-                delay = random.uniform(
-                    settings.get("min_delay_seconds", 9),
-                    settings.get("max_delay_seconds", 22),
-                )
-                print(f"  Várakozás {delay:.1f} mp...")
+                delay = random.uniform(settings.get("min_delay_seconds", 20), settings.get("max_delay_seconds", 45))
                 await asyncio.sleep(delay)
-
-        await browser.close()
+    finally:
+        await session.save()
+        await session.close()
 
     print(f"\n[{datetime.now().isoformat()}] Batch kész. {stats}")
 

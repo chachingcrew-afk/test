@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       batch_size:
-        description: "Batch méret (tesztnél pl. 5)"
+        description: "Batch méret (tesztnél pl. 10)"
         required: false
         default: ""
 
@@ -19,7 +19,7 @@ concurrency:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: google-scraper
@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          playwright install chromium --with-deps
+          python -m patchright install --with-deps chromium
 
       - name: Run scraper
         env:
@@ -46,7 +46,8 @@ jobs:
           WEBSHARE_USER: ${{ secrets.WEBSHARE_USER }}
           WEBSHARE_PASS: ${{ secrets.WEBSHARE_PASS }}
           BATCH_SIZE: ${{ github.event.inputs.batch_size }}
-        run: python scraper.py
+        # virtuális kijelző: a Chrome látható módban fut (headless-t könnyebb felismerni)
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1366x900x24" python scraper.py
 
       - name: Upload debug HTML/screenshots
         if: always()

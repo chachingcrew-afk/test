@@ -2,11 +2,18 @@ name: Price Scraper (simple)
 
 # Separate from "Track prices": lives in simple-scraper/, saves to the
 # Supabase table product_prices. CSV backup is uploaded as a run artifact.
+# One job per shop, running side by side, so the full product list fits in one run.
 on:
-  schedule:
-    - cron: "7 6 * * *"   # UTC, 07:07 Dutch time in winter
+  # daily run switched off while the full product list is first searched shop group by shop group
+  # schedule:
+  #   - cron: "7 6 * * *"   # UTC, 07:07 Dutch time in winter
   workflow_dispatch:
     inputs:
+      access:
+        description: "Melyik shopok: direct = csak ingyenes (proxy nélküli), paid = proxys és böngészős, all = mind"
+        type: choice
+        options: [direct, paid, all]
+        default: direct
       only_domains:
         description: "Csak ezek a shopok (vesszővel elválasztva, üres = mind)"
         required: false
@@ -30,9 +37,37 @@ defaults:
     working-directory: simple-scraper
 
 jobs:
-  scrape:
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 10
+    outputs:
+      domains: ${{ steps.plan.outputs.domains }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: simple-scraper/requirements.txt
+      - run: pip install -r requirements.txt
+      - id: plan
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          ONLY_DOMAINS: ${{ github.event.inputs.only_domains }}
+          ACCESS_FILTER: ${{ github.event.inputs.access || 'direct' }}
+        run: python scraper.py --plan
+
+  scrape:
+    needs: plan
+    if: needs.plan.outputs.domains != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        domain: ${{ fromJSON(needs.plan.outputs.domains) }}
 
     steps:
       - name: Checkout
@@ -48,9 +83,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Browser for shops that block normal requests (~1 min). Patchright drives the
-      # runner's own Google Chrome; its Chromium is the fallback.
+      # Browser for shops that block normal requests (~1 min). Not needed for direct-only runs.
       - name: Install browser
+        if: github.event.inputs.access != 'direct'
         run: python -m patchright install --with-deps chromium
 
       - name: Run scraper
@@ -59,9 +94,11 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           WEBSHARE_USER: ${{ secrets.WEBSHARE_USER }}
           WEBSHARE_PASS: ${{ secrets.WEBSHARE_PASS }}
-          ONLY_DOMAINS: ${{ github.event.inputs.only_domains }}
+          ONLY_DOMAINS: ${{ matrix.domain }}
           ONLY_EANS: ${{ github.event.inputs.only_eans }}
           DEBUG_CAPTURE: ${{ github.event.inputs.debug }}
+          ACCESS_FILTER: ${{ github.event.inputs.access || 'direct' }}
+          MAX_MINUTES: "330"
         # a virtual display, so the browser runs visibly (headless is easier to detect)
         run: xvfb-run --auto-servernum --server-args="-screen 0 1366x900x24" python scraper.py
 
@@ -69,7 +106,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: prices-${{ github.run_id }}
+          name: prices-${{ github.run_id }}-${{ matrix.domain }}
           path: simple-scraper/data/prices.csv
           retention-days: 30
           if-no-files-found: ignore

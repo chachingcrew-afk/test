@@ -483,6 +483,13 @@ class BrowserFallback:
                 except Exception:
                     pass
             html, waited = self._wait_challenge(page)
+            if domain in SEARCH_BROWSER_DOMAINS and is_search_url(url):
+                # the search results are drawn by JavaScript after the page loads: wait for them
+                try:
+                    page.wait_for_selector(".product-item-info, a.product-item-link, .product-item", timeout=12000)
+                except Exception:
+                    pass  # no results shown: keep what the page has (a "no results" page)
+                html = page.content()
             if DEBUG["on"]:
                 debug_save(url, status, html, f"browser:{self.engine}")
             if looks_like_challenge(html):

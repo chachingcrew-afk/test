@@ -45,6 +45,7 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           WEBSHARE_USER: ${{ secrets.WEBSHARE_USER }}
           WEBSHARE_PASS: ${{ secrets.WEBSHARE_PASS }}
+          CAPSOLVER_API_KEY: ${{ secrets.CAPSOLVER_API_KEY }}
           BATCH_SIZE: ${{ github.event.inputs.batch_size }}
         # virtuális kijelző: a Chrome látható módban fut (headless-t könnyebb felismerni)
         run: xvfb-run --auto-servernum --server-args="-screen 0 1366x900x24" python scraper.py

@@ -1253,12 +1253,14 @@ def _locs(xml_text):
 
 SITEMAP_PAID_MB = 50.0  # max sitemap MB per shop over proxy/browser (config: sitemap_max_mb_paid)
 SITEMAP_BYTES = {}
+SITEMAP_CUT = set()  # domains whose sitemap download hit the MB cap (not saved: incomplete)
 
 
 def _fetch_text(session, url, timeout):
     domain = _domain_of(url)
     paid = access_mode(domain) != "direct" or BROWSER.needs(domain)
     if paid and SITEMAP_BYTES.get(domain, 0) / 1_000_000 >= SITEMAP_PAID_MB:
+        SITEMAP_CUT.add(domain)
         raise FetchError("sitemap forgalmi limit", 413)
     resp = fetch(session, url, timeout, 1)
     body = resp.content
@@ -1361,8 +1363,10 @@ def sitemap_urls(session, domain, timeout):
             urls += locs
     urls = [u for u in urls if _same_site(u, domain) and not u.lower().endswith((".jpg", ".png", ".webp", ".xml"))]
     SITEMAPS[domain] = urls
-    if paid and urls and SITEMAP_BYTES.get(domain, 0) / 1_000_000 < SITEMAP_PAID_MB:
+    if paid and urls and domain not in SITEMAP_CUT:
         _save_sitemap(domain, urls)  # complete download only; a cut-off list would hide products
+    if domain in SITEMAP_CUT:
+        print(f"  ! {domain} sitemap csak részben jött le ({SITEMAP_PAID_MB:.0f} MB limit), nem mentem el")
     print(f"  > {domain} sitemap: {len(urls)} oldal")
     return urls
 
@@ -1574,7 +1578,8 @@ def process(session, product, competitor, cache, settings):
     cached = cache.get_url(key, domain)
     if cached and not cached.get("url"):
         checked = datetime.fromisoformat(str(cached["checked_at"]).replace("Z", "+00:00"))
-        if datetime.now(timezone.utc) - checked < timedelta(days=settings["research_days"]):
+        # a targeted run (ONLY_DOMAINS / ONLY_EANS) always rechecks "not sold"
+        if not settings.get("recheck") and datetime.now(timezone.utc) - checked < timedelta(days=settings["research_days"]):
             return None  # searched recently, not sold there: skip quietly
         cached = None
 
@@ -1736,6 +1741,7 @@ def main():
         competitors = [c for c in competitors if c["domain"] in only_domains]
         print(f"Csak ezek a shopok: {', '.join(sorted(only_domains))}")
     only_eans = {e.strip() for e in os.getenv("ONLY_EANS", "").replace(";", ",").split(",") if e.strip()}
+    settings["recheck"] = bool(only_domains or only_eans)
     if only_eans:
         products = [p for p in products if p.get("ean") in only_eans]
         print(f"Csak ezek a termékek (EAN): {', '.join(sorted(only_eans))}")

@@ -574,6 +574,8 @@ def fetch(session, url, timeout, retries, expect_json=False, escalate=True):
     domain = _domain_of(url)
     if access_mode(domain) == "browser" or BROWSER.needs(domain):
         return BROWSER.get(url, timeout)
+    if domain in SEARCH_BROWSER_DOMAINS and BROWSER.enabled and is_search_url(url):
+        return BROWSER.get(url, timeout)
     last_err, last_status = None, None
     for attempt in range(1, retries + 1):
         _polite_wait(domain)
@@ -908,6 +910,15 @@ SEARCH_TEMPLATES = [
     ("html", "https://{d}/search/{q}/"),
     ("html", "https://{d}/zoeken/{q}/"),
 ]
+
+# shop-specific search pages, tried first on that shop only
+EXTRA_SEARCH = {
+    "planethappy.nl": [("html", "https://{d}/zoeken.html?s={q}")],
+}
+
+# shops whose search results are drawn by JavaScript: only their search pages go through
+# the browser (the product pages keep their normal route)
+SEARCH_BROWSER_DOMAINS = {"babylux.nl"}
 
 SKIP_PATH = ("/search", "/zoeken", "/catalogsearch", "/zoek", "/suche", "/recherche", "/cart", "/winkelwagen", "/account", "/login", "/inloggen",
              "/checkout", "/afrekenen", "/contact", "/blog", "/wishlist", "/verlanglijst",
@@ -1421,7 +1432,7 @@ def find_on_site(session, product, competitor, cache, timeout, retries):
         methods = [(site["search_method"], site["search_template"])]
     else:
         # not proven yet: try every known search URL once per run, the cached one first
-        methods = list(SEARCH_TEMPLATES)
+        methods = list(EXTRA_SEARCH.get(domain, [])) + list(SEARCH_TEMPLATES)
         if site.get("search_template"):
             methods.sort(key=lambda m: 0 if m[1] == site["search_template"] else 1)
         PROBED.add(domain)

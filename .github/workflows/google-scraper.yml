@@ -1,0 +1,58 @@
+name: Google Scraper NL
+
+on:
+  # Teszt után vedd ki a # jeleket a következő két sor elől:
+  # schedule:
+  #   - cron: "5 */3 * * *"    # 3 óránként, 5 perckor
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "Batch méret (tesztnél pl. 5)"
+        required: false
+        default: ""
+
+# ne fusson két példány egyszerre, ha egy futás elhúzódik
+concurrency:
+  group: google-scraper
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    defaults:
+      run:
+        working-directory: google-scraper
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: google-scraper/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium --with-deps
+
+      - name: Run scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          WEBSHARE_USER: ${{ secrets.WEBSHARE_USER }}
+          WEBSHARE_PASS: ${{ secrets.WEBSHARE_PASS }}
+          BATCH_SIZE: ${{ github.event.inputs.batch_size }}
+        run: python scraper.py
+
+      - name: Upload debug HTML/screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-${{ github.run_id }}
+          path: google-scraper/debug/
+          if-no-files-found: ignore
+          retention-days: 3

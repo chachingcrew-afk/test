@@ -1,0 +1,25 @@
+{
+  "proxy": {
+    "enabled": true,
+    "host": "p.webshare.io",
+    "port": 80,
+    "country": "nl",
+    "rotate": true
+  },
+  "settings": {
+    "products_file": [
+      "pricetool-producten-2026-11-27.xlsx",
+      "../simple-scraper/products.xlsx"
+    ],
+    "batch_size": 40,
+    "skip_hours": 40,
+    "min_delay_seconds": 9,
+    "max_delay_seconds": 22,
+    "max_organic": 8,
+    "max_shopping": 12,
+    "headless": true,
+    "debug": true,
+    "locale": "nl-NL",
+    "timezone_id": "Europe/Amsterdam"
+  }
+}

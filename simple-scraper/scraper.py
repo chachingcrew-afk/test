@@ -1734,11 +1734,16 @@ def main():
         "research_days": int(s.get("research_not_found_after_days", 14)),
     }
     delay_min, delay_max = float(s.get("delay_min", 1.5)), float(s.get("delay_max", 4.0))
-    max_mb = float(s.get("max_mb_per_run", 0) or 0)
+    max_mb = float(os.getenv("MAX_MB") or s.get("max_mb_per_run", 0) or 0)
     global SITEMAP_PAID_MB
     SITEMAP_PAID_MB = float(s.get("sitemap_max_mb_paid", SITEMAP_PAID_MB))
-    max_minutes = float(s.get("max_minutes_per_run", 100) or 0)
+    max_minutes = float(os.getenv("MAX_MINUTES") or s.get("max_minutes_per_run", 100) or 0)
     started = time.monotonic()
+    # ACCESS_FILTER: "direct" = only shops reached without proxy (and never escalate to the
+    # paid proxy/browser in this run), "paid" = only proxy/browser shops, empty = all
+    access_filter = os.getenv("ACCESS_FILTER", "").strip().lower()
+    if access_filter in ("all", "mind"):
+        access_filter = ""
 
     products_file = Path(s.get("products_file", "products.xlsx"))
     products = load_products(products_file)
@@ -1748,7 +1753,8 @@ def main():
         competitors = [c for c in competitors if c["domain"] in only_domains]
         print(f"Csak ezek a shopok: {', '.join(sorted(only_domains))}")
     only_eans = {e.strip() for e in os.getenv("ONLY_EANS", "").replace(";", ",").split(",") if e.strip()}
-    settings["recheck"] = bool(only_domains or only_eans)
+    # an EAN-targeted (diagnostic) run always rechecks "not sold"
+    settings["recheck"] = bool(only_eans)
     if only_eans:
         products = [p for p in products if p.get("ean") in only_eans]
         print(f"Csak ezek a termékek (EAN): {', '.join(sorted(only_eans))}")
@@ -1757,6 +1763,10 @@ def main():
     proxies = get_proxies(config)
     supabase = get_supabase_client(config)
     BROWSER.enabled = bool(s.get("browser_fallback", True))
+    if access_filter == "direct":
+        proxies = None
+        BROWSER.enabled = False
+        print("Csak a közvetlen (ingyenes) shopok: proxy és böngésző KI, blokkolásnál a shop kimarad")
     if supabase:
         try:
             sync_products(supabase, products)
@@ -1795,6 +1805,10 @@ def main():
             SESSIONS["default_mode"] = "proxy"
     print(f"Proxy mód: {'mindig proxy' if SESSIONS.get('default_mode') == 'proxy' else 'közvetlen, proxy csak blokkolásnál'}")
     ACCESS.update(cache.access_modes())
+    if access_filter in ("direct", "paid"):
+        want_paid = access_filter == "paid"
+        competitors = [c for c in competitors if (access_mode(c["domain"]) != "direct") == want_paid]
+        print(f"Shopok ebben a futásban ({access_filter}): {', '.join(c['domain'] for c in competitors) or '-'}")
     if ACCESS:
         print("Korábban blokkoló shopok: " + ", ".join(f"{d} ({m})" for d, m in sorted(ACCESS.items()) if m != "direct"))
 
@@ -1862,5 +1876,29 @@ def main():
         sys.exit(1)
 
 
+def plan():
+    """--plan: print the shops of this run as JSON (one GitHub job per shop)."""
+    config = load_config()
+    s = config.get("settings", {})
+    competitors = load_competitors(Path(s.get("products_file", "products.xlsx")))
+    only = {norm_domain(d) for d in os.getenv("ONLY_DOMAINS", "").replace(";", ",").split(",") if d.strip()}
+    if only:
+        competitors = [c for c in competitors if c["domain"] in only]
+    access_filter = os.getenv("ACCESS_FILTER", "").strip().lower()
+    if access_filter in ("direct", "paid"):
+        modes = Cache(get_supabase_client(config)).access_modes()
+        want_paid = access_filter == "paid"
+        competitors = [c for c in competitors if (modes.get(c["domain"], "direct") != "direct") == want_paid]
+    domains = sorted({c["domain"] for c in competitors})
+    print(json.dumps(domains))
+    out = os.getenv("GITHUB_OUTPUT")
+    if out:
+        with open(out, "a") as f:
+            f.write(f"domains={json.dumps(domains)}\n")
+
+
 if __name__ == "__main__":
-    main()
+    if "--plan" in sys.argv:
+        plan()
+    else:
+        main()

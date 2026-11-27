@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Google.nl Shopping Scraper (EAN alapján)
-Patchright + valódi Chrome + Webshare NL sticky residential proxy + Supabase
+Patchright + valódi Chrome + Webshare NL sticky residential proxy + Supabase + CapSolver
 
 CAPTCHA csökkentés:
 - patchright + Chrome (xvfb-n látható módban), nem headless Chromium
 - egy holland IP (sticky session) több keresést szolgál ki, a cookie-k megmaradnak
 - a session (IP + cookie) Supabase-be mentve (browser_sessions, domain = google.nl)
 - termékenként csak egy keresés (shopping nézet), hosszú, véletlen szünetek
-- CAPTCHA esetén új IP, nem áll le azonnal
+- CAPTCHA esetén először CapSolver, ha az sem megy → új IP
 """
 
 import asyncio
@@ -21,6 +21,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
+import httpx
 import pandas as pd
 from supabase import create_client, Client
 
@@ -29,7 +30,7 @@ DEBUG_DIR = Path("debug")
 SESSION_KEY = "google.nl"
 
 SOCS_COOKIE = "CAESHAgBEhJnd3NfMjAyMzA4MTAtMF9SQzIaAmVuIAEaBgiAo_CmBg"
-CAPTCHA_MARKERS = ["unusual traffic", "ongebruikelijk verkeer", 'id="captcha-form"', "g-recaptcha"]
+CAPTCHA_MARKERS = ["unusual traffic", "ongebruikelijk verkeer", 'id="captcha-form"', "g-recaptcha", "/sorry/"]
 BLOCKED_TYPES = {"image", "media", "font"}
 
 
@@ -130,7 +131,6 @@ def get_already_scraped_eans(supabase: Client, hours: int = 40) -> set[str]:
     return eans
 
 
-
 # ---------------------------------------------------------------- helpers
 
 def clean_price(text: str) -> Optional[float]:
@@ -147,7 +147,6 @@ def clean_price(text: str) -> Optional[float]:
         return float(cleaned)
     except ValueError:
         return None
-
 
 
 def _norm(text: str) -> str:
@@ -189,6 +188,176 @@ def build_proxy(proxy_cfg: dict) -> dict:
     port = proxy_cfg.get("port", 80)
     return {"server": f"http://{host}:{port}", "username": user, "password": password}
 
+
+# ---------------------------------------------------------------- CapSolver
+
+async def solve_recaptcha_with_capsolver(page, website_url: str, settings: dict) -> bool:
+    """
+    CapSolver-rel megpróbálja megoldani a reCAPTCHA-t.
+    Visszaadja True-t, ha sikerült a tokent beilleszteni.
+    """
+    api_key = os.getenv("CAPSOLVER_API_KEY")
+    if not api_key:
+        print("  [CapSolver] Nincs CAPSOLVER_API_KEY")
+        return False
+
+    cs_cfg = settings.get("capsolver", {})
+    if not cs_cfg.get("enabled", True):
+        return False
+
+    timeout = cs_cfg.get("timeout_seconds", 120)
+    max_attempts = cs_cfg.get("max_attempts_per_captcha", 2)
+
+    try:
+        # Sitekey kinyerése több módszerrel
+        sitekey = await page.evaluate("""() => {
+            // 1. klasszikus g-recaptcha
+            const el = document.querySelector('.g-recaptcha, [data-sitekey]');
+            if (el && el.getAttribute('data-sitekey')) return el.getAttribute('data-sitekey');
+
+            // 2. iframe-ből
+            const iframe = document.querySelector('iframe[src*="recaptcha"], iframe[src*="google.com/recaptcha"]');
+            if (iframe) {
+                const m = iframe.src.match(/[?&]k=([^&]+)/);
+                if (m) return m[1];
+            }
+
+            // 3. grecaptcha config
+            if (typeof ___grecaptcha_cfg !== 'undefined' && ___grecaptcha_cfg.clients) {
+                for (const key of Object.keys(___grecaptcha_cfg.clients)) {
+                    const c = ___grecaptcha_cfg.clients[key];
+                    if (c && c.sitekey) return c.sitekey;
+                    // mélyebb keresés
+                    try {
+                        const s = JSON.stringify(c);
+                        const m = s.match(/sitekey["']?\\s*[:=]\\s*["']([^"']+)/);
+                        if (m) return m[1];
+                    } catch(e) {}
+                }
+            }
+            return null;
+        }""")
+
+        if not sitekey:
+            print("  [CapSolver] Nem található reCAPTCHA sitekey")
+            return False
+
+        print(f"  [CapSolver] sitekey: {sitekey[:28]}...")
+
+        async with httpx.AsyncClient(timeout=timeout + 30) as client:
+            for attempt in range(1, max_attempts + 1):
+                print(f"  [CapSolver] Próbálkozás {attempt}/{max_attempts}")
+
+                # Task létrehozása
+                create_resp = await client.post("https://api.capsolver.com/createTask", json={
+                    "clientKey": api_key,
+                    "task": {
+                        "type": "ReCaptchaV2TaskProxyLess",
+                        "websiteURL": website_url,
+                        "websiteKey": sitekey,
+                    }
+                })
+                create_data = create_resp.json()
+
+                if create_data.get("errorId", 1) != 0:
+                    print(f"  [CapSolver] createTask hiba: {create_data.get('errorDescription') or create_data}")
+                    continue
+
+                task_id = create_data["taskId"]
+                print(f"  [CapSolver] Task: {task_id}")
+
+                # Várakozás a megoldásra
+                deadline = asyncio.get_event_loop().time() + timeout
+                token = None
+                while asyncio.get_event_loop().time() < deadline:
+                    await asyncio.sleep(2)
+                    res = await client.post("https://api.capsolver.com/getTaskResult", json={
+                        "clientKey": api_key,
+                        "taskId": task_id,
+                    })
+                    data = res.json()
+
+                    if data.get("status") == "ready":
+                        token = data.get("solution", {}).get("gRecaptchaResponse")
+                        break
+                    if data.get("errorId", 0) != 0:
+                        print(f"  [CapSolver] getTaskResult hiba: {data.get('errorDescription') or data}")
+                        break
+
+                if not token:
+                    print("  [CapSolver] Nem jött token időben")
+                    continue
+
+                print("  [CapSolver] Token megérkezett, beillesztés...")
+
+                # Token beillesztése
+                await page.evaluate("""(token) => {
+                    // textarea
+                    let ta = document.getElementById('g-recaptcha-response');
+                    if (!ta) {
+                        ta = document.querySelector('[name="g-recaptcha-response"]');
+                    }
+                    if (ta) {
+                        ta.style.display = 'block';
+                        ta.value = token;
+                    }
+
+                    // extra hidden mezők
+                    document.querySelectorAll('textarea[name="g-recaptcha-response"]').forEach(el => {
+                        el.value = token;
+                    });
+
+                    // callback hívás
+                    if (typeof ___grecaptcha_cfg !== 'undefined' && ___grecaptcha_cfg.clients) {
+                        for (const key of Object.keys(___grecaptcha_cfg.clients)) {
+                            const client = ___grecaptcha_cfg.clients[key];
+                            try {
+                                if (client && typeof client.callback === 'function') {
+                                    client.callback(token);
+                                }
+                                // másik lehetséges struktúra
+                                if (client && client.F && client.F.F && typeof client.F.F.callback === 'function') {
+                                    client.F.F.callback(token);
+                                }
+                            } catch (e) {}
+                        }
+                    }
+
+                    // grecaptcha global
+                    if (typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) {
+                        try { /* már be van állítva */ } catch(e) {}
+                    }
+                }""", token)
+
+                await asyncio.sleep(1.5)
+
+                # Submit gomb / form elküldése ha van
+                try:
+                    submit = page.locator('input[type="submit"], button[type="submit"], #recaptcha-verify-button, button:has-text("Submit"), button:has-text("Verify")')
+                    if await submit.count() > 0:
+                        await submit.first.click(timeout=5000)
+                        await page.wait_for_load_state("domcontentloaded", timeout=20000)
+                    else:
+                        # néha elég a token + Enter / reload
+                        await page.keyboard.press("Enter")
+                        await asyncio.sleep(2)
+                except Exception:
+                    pass
+
+                await asyncio.sleep(2)
+
+                # Sikerült-e?
+                if not await is_captcha(page):
+                    print("  [CapSolver] Sikeresen átjutottunk")
+                    return True
+
+                print("  [CapSolver] Token után is CAPTCHA maradt")
+
+        return False
+
+    except Exception as e:
+        print(f"  [CapSolver] Kivétel: {e}")
+        return False
 
 
 # ---------------------------------------------------------------- browser session
@@ -428,7 +597,6 @@ SHOPPING_JS = r"""
 """
 
 
-
 async def search_shopping(session: GoogleSession, product: dict, settings: dict) -> dict:
     query = product["ean"]
     result = {
@@ -443,9 +611,14 @@ async def search_shopping(session: GoogleSession, product: dict, settings: dict)
         await page.wait_for_timeout(random.randint(1800, 3500))
         session.used += 1
 
+        # CAPTCHA kezelés: először CapSolver, csak utána adjuk fel
         if await is_captcha(page):
-            result["status"], result["error"] = "captcha", "CAPTCHA"
-            return result
+            print("  [!] CAPTCHA észlelve")
+            solved = await solve_recaptcha_with_capsolver(page, url, settings)
+            if not solved:
+                result["status"], result["error"] = "captcha", "CAPTCHA (CapSolver nem oldotta meg)"
+                return result
+            # sikerült → folytatjuk a kiolvasást
 
         try:
             await page.mouse.wheel(0, random.randint(300, 800))
@@ -537,9 +710,13 @@ async def main():
     batch_size = int(os.getenv("BATCH_SIZE") or settings.get("batch_size", 40))
     skip_hours = settings.get("skip_hours", 40)
     per_ip = settings.get("searches_per_ip", 8)
-    max_captcha = settings.get("max_captcha_per_run", 4)
+    max_captcha = settings.get("max_captcha_per_run", 6)
 
     print(f"[{datetime.now().isoformat()}] Google shopping scraper indult")
+    if os.getenv("CAPSOLVER_API_KEY"):
+        print("CapSolver: bekapcsolva")
+    else:
+        print("CapSolver: NINCS API kulcs (csak IP-váltás lesz CAPTCHA-nál)")
 
     products_file = resolve_products_file(settings["products_file"])
     products = load_products(products_file)
@@ -572,18 +749,19 @@ async def main():
                 await session.new_identity(f"{per_ip} keresés után")
 
             data = await search_shopping(session, product, settings)
+
+            # Ha CapSolver sem segített → új IP + egy újrapróbálás
             if data["status"] == "captcha":
                 captchas += 1
-                print(f"  → CAPTCHA ({captchas}/{max_captcha}), {session.used - 1} sikeres keresés után ezen az IP-n")
+                print(f"  → CAPTCHA ({captchas}/{max_captcha})")
                 if captchas < max_captcha:
-                    await session.new_identity("CAPTCHA")
-                    await asyncio.sleep(random.uniform(20, 40))
-                    data = await search_shopping(session, product, settings)   # egy újrapróbálás
+                    await session.new_identity("CAPTCHA után")
+                    await asyncio.sleep(random.uniform(15, 35))
+                    data = await search_shopping(session, product, settings)
                     if data["status"] == "captcha":
                         captchas += 1
                         print(f"  → újra CAPTCHA ({captchas}/{max_captcha})")
-                if data["status"] == "captcha" and captchas < max_captcha:
-                    await session.new_identity("CAPTCHA")
+
             stats[data["status"]] = stats.get(data["status"], 0) + 1
             print(f"  → {data['status'].upper()} | shopping: {len(data['shopping'])}"
                   + (f" | {data['error']}" if data.get("error") else ""))

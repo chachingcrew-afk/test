@@ -13,10 +13,15 @@
     "batch_size": 40,
     "skip_hours": 40,
     "searches_per_ip": 40,
-    "max_captcha_per_run": 4,
+    "max_captcha_per_run": 6,
     "min_delay_seconds": 20,
     "max_delay_seconds": 45,
     "max_shopping": 12,
-    "debug": true
+    "debug": true,
+    "capsolver": {
+      "enabled": true,
+      "max_attempts_per_captcha": 2,
+      "timeout_seconds": 120
+    }
   }
 }
